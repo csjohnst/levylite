@@ -183,63 +183,72 @@ export default function Home() {
             Simple, honest pricing
           </h2>
           <p className="text-center text-xl text-[#3A3A3A]/80 mb-12">
-            Start free. Upgrade when you&apos;re ready. No lock-in.
+            Graduated pricing — the more you manage, the less you pay per lot. No cliffs, no surprises.
           </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="p-6 border-2 border-[#02667F]/20">
-              <h3 className="text-2xl font-bold mb-2 text-[#3A3A3A]">Free</h3>
-              <p className="text-[#3A3A3A]/80 mb-4">Up to 5 lots, 1 scheme</p>
-              <p className="text-4xl font-bold text-[#02667F] mb-4">$0</p>
-              <ul className="text-sm text-[#3A3A3A]/70 space-y-1 mb-4">
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> 14-day trial of all features</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Scheme &amp; lot register</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Levy management</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Owner portal</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Document storage</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Meeting admin</li>
-              </ul>
-              <p className="text-xs text-[#3A3A3A]/50">Perfect for self-managed schemes</p>
-            </Card>
-            <Card className="p-6 border-2 border-[#02667F]/20">
-              <h3 className="text-2xl font-bold mb-2 text-[#3A3A3A]">Starter</h3>
-              <p className="text-[#3A3A3A]/80 mb-4">6–50 lots</p>
-              <p className="text-4xl font-bold text-[#02667F] mb-4">$8<span className="text-lg">/lot/month</span></p>
-              <ul className="text-sm text-[#3A3A3A]/70 space-y-1 mb-4">
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Everything in Free</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Trust accounting</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Bulk levy notices</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Financial reporting</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> CSV import/export</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Unlimited schemes</li>
-              </ul>
-              <p className="text-xs text-[#3A3A3A]/50">Most small operators</p>
-            </Card>
-            <Card className="relative p-6 border-2 border-[#0090B7] shadow-lg">
-              <div className="absolute -top-3 left-6 bg-[#0090B7] text-white text-xs font-bold px-3 py-1 rounded-full">
-                MOST POPULAR
+          
+          {/* Pricing tiers */}
+          <div className="max-w-3xl mx-auto mb-12">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-[#02667F]/10">
+              <div className="grid grid-cols-3 bg-[#02667F] text-white text-center font-bold">
+                <div className="p-4">Lots</div>
+                <div className="p-4">Rate</div>
+                <div className="p-4">Example</div>
               </div>
-              <h3 className="text-2xl font-bold mb-2 text-[#3A3A3A]">Professional</h3>
-              <p className="text-[#3A3A3A]/80 mb-4">51–200 lots</p>
-              <p className="text-4xl font-bold text-[#02667F] mb-4">$6<span className="text-lg">/lot/month</span></p>
-              <ul className="text-sm text-[#3A3A3A]/70 space-y-1 mb-4">
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Everything in Starter</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Priority support</li>
-              </ul>
-              <p className="text-xs text-[#3A3A3A]/50">Growing portfolios</p>
-            </Card>
+              <div className="grid grid-cols-3 text-center border-b border-gray-100">
+                <div className="p-4 font-medium text-[#3A3A3A]">First 5 lots</div>
+                <div className="p-4 text-[#02667F] font-bold text-xl">Free</div>
+                <div className="p-4 text-[#3A3A3A]/70">$0/mo</div>
+              </div>
+              <div className="grid grid-cols-3 text-center border-b border-gray-100 bg-[#F6F8FA]">
+                <div className="p-4 font-medium text-[#3A3A3A]">Lots 6–50</div>
+                <div className="p-4 text-[#02667F] font-bold text-xl">$8<span className="text-sm font-normal">/lot/mo</span></div>
+                <div className="p-4 text-[#3A3A3A]/70">30 lots = $200/mo</div>
+              </div>
+              <div className="grid grid-cols-3 text-center border-b border-gray-100">
+                <div className="p-4 font-medium text-[#3A3A3A]">Lots 51–200</div>
+                <div className="p-4 text-[#02667F] font-bold text-xl">$6<span className="text-sm font-normal">/lot/mo</span></div>
+                <div className="p-4 text-[#3A3A3A]/70">100 lots = $660/mo</div>
+              </div>
+              <div className="grid grid-cols-3 text-center bg-[#F6F8FA]">
+                <div className="p-4 font-medium text-[#3A3A3A]">Lots 201–500</div>
+                <div className="p-4 text-[#02667F] font-bold text-xl">$5<span className="text-sm font-normal">/lot/mo</span></div>
+                <div className="p-4 text-[#3A3A3A]/70">300 lots = $1,860/mo</div>
+              </div>
+            </div>
+          </div>
+
+          {/* What's included */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card className="p-6 border-2 border-[#02667F]/20">
-              <h3 className="text-2xl font-bold mb-2 text-[#3A3A3A]">Growth</h3>
-              <p className="text-[#3A3A3A]/80 mb-4">201–500 lots</p>
-              <p className="text-4xl font-bold text-[#02667F] mb-4">$5<span className="text-lg">/lot/month</span></p>
-              <ul className="text-sm text-[#3A3A3A]/70 space-y-1 mb-4">
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Everything in Professional</li>
-                <li className="flex items-center gap-1"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Volume discount</li>
+              <h3 className="text-xl font-bold mb-4 text-[#3A3A3A]">Free tier (up to 5 lots)</h3>
+              <ul className="text-sm text-[#3A3A3A]/70 space-y-2">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> 14-day trial of all features</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Scheme &amp; lot register</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Levy management</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Owner portal</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Document storage</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Meeting admin</li>
+                <li className="flex items-center gap-2"><X className="w-4 h-4 text-red-400 flex-shrink-0" /> Trust accounting</li>
+                <li className="flex items-center gap-2"><X className="w-4 h-4 text-red-400 flex-shrink-0" /> Bulk levy notices</li>
+                <li className="flex items-center gap-2"><X className="w-4 h-4 text-red-400 flex-shrink-0" /> Financial reporting</li>
               </ul>
-              <p className="text-xs text-[#3A3A3A]/50">Established operators</p>
+            </Card>
+            <Card className="p-6 border-2 border-[#0090B7] shadow-lg">
+              <h3 className="text-xl font-bold mb-4 text-[#3A3A3A]">Paid (6+ lots) — everything included</h3>
+              <ul className="text-sm text-[#3A3A3A]/70 space-y-2">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> All free tier features</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Trust accounting &amp; audit trails</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Bulk levy notices &amp; reminders</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Financial reporting &amp; budgets</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> CSV import/export</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Unlimited users &amp; schemes</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Unlimited document storage</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Email support</li>
+              </ul>
             </Card>
           </div>
           <p className="text-center text-sm text-[#3A3A3A]/60 mt-8">
-            All paid plans include unlimited users, unlimited storage, and all features. Save 2 months with annual billing.
+            Save 2 months with annual billing. All prices in AUD, ex GST.
           </p>
         </div>
       </section>

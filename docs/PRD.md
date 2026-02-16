@@ -398,16 +398,20 @@ Leverage Chris's existing skills (Next.js + Supabase) to minimise learning curve
 
 Transparent, predictable, no sales calls required.
 
-| Tier | Lots Managed | Price/Lot/Month | Monthly Cost Example | Annual Cost | Target Customer |
-|------|--------------|-----------------|----------------------|-------------|-----------------|
-| **Free** | 1-5 lots, 1 scheme | $0 | $0 | $0 | Trial / self-managed schemes |
-| **Starter** | 11-50 lots | $8/lot | 30 lots = $240/month | $2,880/year | Sole practitioners (small portfolio) |
-| **Professional** | 51-200 lots | $6/lot | 100 lots = $600/month | $7,200/year | Small agencies, real estate agents |
-| **Growth** | 201-500 lots | $5/lot | 300 lots = $1,500/month | $18,000/year | Growing agencies |
+### Graduated Pricing (no cliffs, scales smoothly)
 
-**Paid tiers include:** Unlimited users, unlimited document storage (fair use 50GB/tier), all MVP features, email support (24-48h response).
+| Lot Range | Rate | Example (cumulative) |
+|-----------|------|---------------------|
+| **First 5 lots** | Free | $0/mo |
+| **Lots 6–50** | $8/lot/mo | 30 lots = $200/mo |
+| **Lots 51–200** | $6/lot/mo | 100 lots = (45×$8)+(50×$6) = $660/mo |
+| **Lots 201–500** | $5/lot/mo | 300 lots = (45×$8)+(150×$6)+(100×$5) = $1,860/mo |
 
-**Free tier includes:** Scheme & lot register, levy management (manual notices only), document storage, owner portal, meeting admin. **14-day trial of all features** on signup.
+Pricing is graduated — each tier applies only to lots within that range. No cliffs.
+
+**Paid (6+ lots) includes:** All features, unlimited users, unlimited document storage (fair use 50GB), unlimited schemes, email support (24-48h response).
+
+**Free tier (≤5 lots, 1 scheme) includes:** Scheme & lot register, levy management (manual notices only), document storage, owner portal, meeting admin. **14-day trial of all features** on signup.
 
 **Free tier excludes (after trial):** Trust accounting, bulk levy notices, financial reporting, CSV import/export.
 
