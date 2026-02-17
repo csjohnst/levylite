@@ -1,4 +1,4 @@
--- Migration 00002: Core tables (organisations, organisation_users)
+-- Migration 00002: Core tables (organisations, organisation_users) + RLS helper functions
 
 -- Organisations table
 CREATE TABLE public.organisations (
@@ -27,20 +27,29 @@ CREATE TABLE public.organisation_users (
 CREATE INDEX idx_organisation_users_user ON public.organisation_users(user_id);
 CREATE INDEX idx_organisation_users_org ON public.organisation_users(organisation_id);
 
+-- Trigger: auto-update updated_at on organisations
+CREATE TRIGGER set_organisations_updated_at
+  BEFORE UPDATE ON public.organisations
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Now create helper functions (tables they reference exist)
+CREATE OR REPLACE FUNCTION public.user_organisation_id() RETURNS UUID AS $$
+  SELECT organisation_id FROM public.organisation_users WHERE user_id = auth.uid() LIMIT 1;
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+CREATE OR REPLACE FUNCTION public.user_role() RETURNS TEXT AS $$
+  SELECT role FROM public.organisation_users WHERE user_id = auth.uid() LIMIT 1;
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
 -- Row-level security
 ALTER TABLE public.organisations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.organisation_users ENABLE ROW LEVEL SECURITY;
 
 -- Policies: users can see their own organisation
 CREATE POLICY "tenant_isolation" ON public.organisations
-  FOR ALL USING (id = auth.user_organisation_id());
+  FOR ALL USING (id = public.user_organisation_id());
 
 -- Policies: users can see members of their organisation
 CREATE POLICY "tenant_isolation" ON public.organisation_users
-  FOR ALL USING (organisation_id = auth.user_organisation_id());
-
--- Trigger: auto-update updated_at on organisations
-CREATE TRIGGER set_organisations_updated_at
-  BEFORE UPDATE ON public.organisations
-  FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
+  FOR ALL USING (organisation_id = public.user_organisation_id());

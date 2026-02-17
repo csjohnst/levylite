@@ -70,7 +70,7 @@ CREATE INDEX idx_schemes_search ON public.schemes USING gin(
 ALTER TABLE public.schemes ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "tenant_isolation" ON public.schemes
-  FOR ALL USING (organisation_id = auth.user_organisation_id());
+  FOR ALL USING (organisation_id = public.user_organisation_id());
 
 -- Triggers
 CREATE TRIGGER set_schemes_updated_at
@@ -146,7 +146,7 @@ CREATE POLICY "tenant_isolation" ON public.lots
     EXISTS (
       SELECT 1 FROM public.schemes
       WHERE schemes.id = lots.scheme_id
-      AND schemes.organisation_id = auth.user_organisation_id()
+      AND schemes.organisation_id = public.user_organisation_id()
     )
   );
 

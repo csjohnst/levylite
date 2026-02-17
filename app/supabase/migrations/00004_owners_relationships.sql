@@ -1,10 +1,13 @@
 -- Migration 00004: Owners, lot_ownerships, committee_members, tenants
 -- Column definitions sourced from docs/features/02-scheme-lot-register.md
+-- NOTE: All tables are created first, then RLS policies + triggers applied
+-- (to avoid forward-reference issues with lot_ownerships in owners RLS policy)
 
 -- ============================================================
+-- 1. CREATE ALL TABLES
+-- ============================================================
+
 -- Owners table
--- ============================================================
-
 CREATE TABLE public.owners (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
@@ -61,51 +64,7 @@ CREATE TABLE public.owners (
   )
 );
 
--- Indexes
-CREATE INDEX idx_owners_email ON public.owners(email) WHERE email IS NOT NULL;
-CREATE INDEX idx_owners_status ON public.owners(status);
-CREATE INDEX idx_owners_name ON public.owners(last_name, first_name);
-CREATE INDEX idx_owners_search ON public.owners USING gin(
-  to_tsvector('english',
-    coalesce(first_name, '') || ' ' ||
-    coalesce(last_name, '') || ' ' ||
-    coalesce(email, '') || ' ' ||
-    coalesce(company_name, '')
-  )
-);
-
--- Row-level security
-ALTER TABLE public.owners ENABLE ROW LEVEL SECURITY;
-
--- Policy: managers see owners linked to their organisation's schemes;
--- owners can see their own record via portal_user_id
-CREATE POLICY "tenant_isolation" ON public.owners
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM public.lot_ownerships
-      JOIN public.lots ON lots.id = lot_ownerships.lot_id
-      JOIN public.schemes ON schemes.id = lots.scheme_id
-      WHERE lot_ownerships.owner_id = owners.id
-      AND schemes.organisation_id = auth.user_organisation_id()
-    ) OR
-    portal_user_id = auth.uid()
-  );
-
--- Triggers
-CREATE TRIGGER set_owners_updated_at
-  BEFORE UPDATE ON public.owners
-  FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER owners_audit_log
-  AFTER INSERT OR UPDATE OR DELETE ON public.owners
-  FOR EACH ROW
-  EXECUTE FUNCTION public.audit_log_trigger();
-
--- ============================================================
 -- Lot ownerships (junction table: lots <-> owners)
--- ============================================================
-
 CREATE TABLE public.lot_ownerships (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   lot_id UUID NOT NULL REFERENCES public.lots(id) ON DELETE CASCADE,
@@ -142,45 +101,7 @@ CREATE TABLE public.lot_ownerships (
   )
 );
 
--- Indexes
-CREATE INDEX idx_lot_ownerships_lot ON public.lot_ownerships(lot_id);
-CREATE INDEX idx_lot_ownerships_owner ON public.lot_ownerships(owner_id);
-CREATE INDEX idx_lot_ownerships_current ON public.lot_ownerships(lot_id, owner_id)
-  WHERE ownership_end_date IS NULL;
-
--- Row-level security
-ALTER TABLE public.lot_ownerships ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "tenant_isolation" ON public.lot_ownerships
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM public.lots
-      JOIN public.schemes ON schemes.id = lots.scheme_id
-      WHERE lots.id = lot_ownerships.lot_id
-      AND schemes.organisation_id = auth.user_organisation_id()
-    ) OR
-    EXISTS (
-      SELECT 1 FROM public.owners
-      WHERE owners.id = lot_ownerships.owner_id
-      AND owners.portal_user_id = auth.uid()
-    )
-  );
-
--- Triggers
-CREATE TRIGGER set_lot_ownerships_updated_at
-  BEFORE UPDATE ON public.lot_ownerships
-  FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER lot_ownerships_audit_log
-  AFTER INSERT OR UPDATE OR DELETE ON public.lot_ownerships
-  FOR EACH ROW
-  EXECUTE FUNCTION public.audit_log_trigger();
-
--- ============================================================
 -- Committee members
--- ============================================================
-
 CREATE TABLE public.committee_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   scheme_id UUID NOT NULL REFERENCES public.schemes(id) ON DELETE CASCADE,
@@ -197,38 +118,7 @@ CREATE TABLE public.committee_members (
   CONSTRAINT unique_committee_appointment UNIQUE(scheme_id, owner_id, elected_at)
 );
 
--- Indexes
-CREATE INDEX idx_committee_members_scheme ON public.committee_members(scheme_id);
-CREATE INDEX idx_committee_members_owner ON public.committee_members(owner_id);
-CREATE INDEX idx_committee_members_active ON public.committee_members(scheme_id) WHERE is_active = TRUE;
-
--- Row-level security
-ALTER TABLE public.committee_members ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "tenant_isolation" ON public.committee_members
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM public.schemes
-      WHERE schemes.id = committee_members.scheme_id
-      AND schemes.organisation_id = auth.user_organisation_id()
-    )
-  );
-
--- Triggers
-CREATE TRIGGER set_committee_members_updated_at
-  BEFORE UPDATE ON public.committee_members
-  FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER committee_members_audit_log
-  AFTER INSERT OR UPDATE OR DELETE ON public.committee_members
-  FOR EACH ROW
-  EXECUTE FUNCTION public.audit_log_trigger();
-
--- ============================================================
 -- Tenants
--- ============================================================
-
 CREATE TABLE public.tenants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   lot_id UUID NOT NULL REFERENCES public.lots(id) ON DELETE CASCADE,
@@ -277,31 +167,130 @@ CREATE TABLE public.tenants (
   )
 );
 
--- Indexes
+-- ============================================================
+-- 2. INDEXES
+-- ============================================================
+
+-- Owners indexes
+CREATE INDEX idx_owners_email ON public.owners(email) WHERE email IS NOT NULL;
+CREATE INDEX idx_owners_status ON public.owners(status);
+CREATE INDEX idx_owners_name ON public.owners(last_name, first_name);
+CREATE INDEX idx_owners_search ON public.owners USING gin(
+  to_tsvector('english',
+    coalesce(first_name, '') || ' ' ||
+    coalesce(last_name, '') || ' ' ||
+    coalesce(email, '') || ' ' ||
+    coalesce(company_name, '')
+  )
+);
+
+-- Lot ownerships indexes
+CREATE INDEX idx_lot_ownerships_lot ON public.lot_ownerships(lot_id);
+CREATE INDEX idx_lot_ownerships_owner ON public.lot_ownerships(owner_id);
+CREATE INDEX idx_lot_ownerships_current ON public.lot_ownerships(lot_id, owner_id)
+  WHERE ownership_end_date IS NULL;
+
+-- Committee members indexes
+CREATE INDEX idx_committee_members_scheme ON public.committee_members(scheme_id);
+CREATE INDEX idx_committee_members_owner ON public.committee_members(owner_id);
+CREATE INDEX idx_committee_members_active ON public.committee_members(scheme_id) WHERE is_active = TRUE;
+
+-- Tenants indexes
 CREATE INDEX idx_tenants_lot ON public.tenants(lot_id);
 CREATE INDEX idx_tenants_status ON public.tenants(status);
 CREATE INDEX idx_tenants_current ON public.tenants(lot_id) WHERE status = 'current';
 
--- Row-level security
+-- ============================================================
+-- 3. RLS POLICIES (all tables exist now, safe to cross-reference)
+-- ============================================================
+
+ALTER TABLE public.owners ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lot_ownerships ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.committee_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tenants ENABLE ROW LEVEL SECURITY;
 
+-- Owners: managers see owners linked to their org's schemes; owners see own record
+CREATE POLICY "tenant_isolation" ON public.owners
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.lot_ownerships
+      JOIN public.lots ON lots.id = lot_ownerships.lot_id
+      JOIN public.schemes ON schemes.id = lots.scheme_id
+      WHERE lot_ownerships.owner_id = owners.id
+      AND schemes.organisation_id = public.user_organisation_id()
+    ) OR
+    portal_user_id = auth.uid()
+  );
+
+-- Lot ownerships: staff via org chain; owners via portal_user_id
+CREATE POLICY "tenant_isolation" ON public.lot_ownerships
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.lots
+      JOIN public.schemes ON schemes.id = lots.scheme_id
+      WHERE lots.id = lot_ownerships.lot_id
+      AND schemes.organisation_id = public.user_organisation_id()
+    ) OR
+    EXISTS (
+      SELECT 1 FROM public.owners
+      WHERE owners.id = lot_ownerships.owner_id
+      AND owners.portal_user_id = auth.uid()
+    )
+  );
+
+-- Committee members: via scheme → organisation
+CREATE POLICY "tenant_isolation" ON public.committee_members
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.schemes
+      WHERE schemes.id = committee_members.scheme_id
+      AND schemes.organisation_id = public.user_organisation_id()
+    )
+  );
+
+-- Tenants: via lot → scheme → organisation
 CREATE POLICY "tenant_isolation" ON public.tenants
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.lots
       JOIN public.schemes ON schemes.id = lots.scheme_id
       WHERE lots.id = tenants.lot_id
-      AND schemes.organisation_id = auth.user_organisation_id()
+      AND schemes.organisation_id = public.user_organisation_id()
     )
   );
 
--- Triggers
+-- ============================================================
+-- 4. TRIGGERS
+-- ============================================================
+
+CREATE TRIGGER set_owners_updated_at
+  BEFORE UPDATE ON public.owners
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER owners_audit_log
+  AFTER INSERT OR UPDATE OR DELETE ON public.owners
+  FOR EACH ROW EXECUTE FUNCTION public.audit_log_trigger();
+
+CREATE TRIGGER set_lot_ownerships_updated_at
+  BEFORE UPDATE ON public.lot_ownerships
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER lot_ownerships_audit_log
+  AFTER INSERT OR UPDATE OR DELETE ON public.lot_ownerships
+  FOR EACH ROW EXECUTE FUNCTION public.audit_log_trigger();
+
+CREATE TRIGGER set_committee_members_updated_at
+  BEFORE UPDATE ON public.committee_members
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER committee_members_audit_log
+  AFTER INSERT OR UPDATE OR DELETE ON public.committee_members
+  FOR EACH ROW EXECUTE FUNCTION public.audit_log_trigger();
+
 CREATE TRIGGER set_tenants_updated_at
   BEFORE UPDATE ON public.tenants
-  FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 CREATE TRIGGER tenants_audit_log
   AFTER INSERT OR UPDATE OR DELETE ON public.tenants
-  FOR EACH ROW
-  EXECUTE FUNCTION public.audit_log_trigger();
+  FOR EACH ROW EXECUTE FUNCTION public.audit_log_trigger();

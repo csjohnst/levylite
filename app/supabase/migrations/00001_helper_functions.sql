@@ -1,15 +1,6 @@
--- Migration 00001: Helper functions and audit_log table
+-- Migration 00001: Trigger functions and audit_log table
 -- These are used across all RLS policies, triggers, and later migrations.
-
--- auth.user_organisation_id() -- Returns the organisation_id for the current authenticated user
-CREATE OR REPLACE FUNCTION auth.user_organisation_id() RETURNS UUID AS $$
-  SELECT organisation_id FROM public.organisation_users WHERE user_id = auth.uid() LIMIT 1;
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
-
--- auth.user_role() -- Returns the role for the current authenticated user
-CREATE OR REPLACE FUNCTION auth.user_role() RETURNS TEXT AS $$
-  SELECT role FROM public.organisation_users WHERE user_id = auth.uid() LIMIT 1;
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
+-- NOTE: user_organisation_id() and user_role() are created in 00002 after the tables they reference.
 
 -- update_updated_at_column() -- Trigger function to auto-set updated_at
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()

@@ -11,13 +11,13 @@ CREATE POLICY "users_see_own_org_audit_logs" ON public.audit_log
     -- This checks the most common tables; extend as needed.
     (table_name = 'schemes' AND EXISTS (
       SELECT 1 FROM public.schemes WHERE schemes.id = audit_log.record_id
-      AND schemes.organisation_id = auth.user_organisation_id()
+      AND schemes.organisation_id = public.user_organisation_id()
     )) OR
     (table_name = 'lots' AND EXISTS (
       SELECT 1 FROM public.lots
       JOIN public.schemes ON schemes.id = lots.scheme_id
       WHERE lots.id = audit_log.record_id
-      AND schemes.organisation_id = auth.user_organisation_id()
+      AND schemes.organisation_id = public.user_organisation_id()
     )) OR
     (table_name = 'owners' AND EXISTS (
       SELECT 1 FROM public.owners
@@ -25,16 +25,16 @@ CREATE POLICY "users_see_own_org_audit_logs" ON public.audit_log
       JOIN public.lots ON lots.id = lot_ownerships.lot_id
       JOIN public.schemes ON schemes.id = lots.scheme_id
       WHERE owners.id = audit_log.record_id
-      AND schemes.organisation_id = auth.user_organisation_id()
+      AND schemes.organisation_id = public.user_organisation_id()
     )) OR
     (table_name = 'organisations' AND EXISTS (
       SELECT 1 FROM public.organisations WHERE organisations.id = audit_log.record_id
-      AND organisations.id = auth.user_organisation_id()
+      AND organisations.id = public.user_organisation_id()
     )) OR
     (table_name IN ('lot_ownerships','committee_members','tenants') AND EXISTS (
       SELECT 1 FROM public.organisation_users
       WHERE organisation_users.user_id = auth.uid()
-      AND organisation_users.organisation_id = auth.user_organisation_id()
+      AND organisation_users.organisation_id = public.user_organisation_id()
     ))
   );
 
@@ -61,7 +61,7 @@ CREATE INDEX idx_invitations_email ON public.invitations(email);
 ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "tenant_isolation" ON public.invitations
-  FOR ALL USING (organisation_id = auth.user_organisation_id());
+  FOR ALL USING (organisation_id = public.user_organisation_id());
 
 -- ============================================================
 -- Notifications table
