@@ -191,7 +191,7 @@ export default function Home() {
             <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-[#02667F]/10">
               <div className="grid grid-cols-3 bg-[#02667F] text-white text-center font-bold">
                 <div className="p-4">Lots</div>
-                <div className="p-4">Rate</div>
+                <div className="p-4">Rate <span className="text-xs font-normal opacity-80">(ex GST)</span></div>
                 <div className="p-4">Example</div>
               </div>
               <div className="grid grid-cols-3 text-center border-b border-gray-100">
