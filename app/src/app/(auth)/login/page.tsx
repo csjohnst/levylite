@@ -168,11 +168,17 @@ export default function LoginPage() {
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="justify-center">
+      <CardFooter className="flex-col gap-2">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
           <Link href="/signup" className="text-primary underline-offset-4 hover:underline">
             Sign up
+          </Link>
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Are you a lot owner?{' '}
+          <Link href="/owner/login" className="text-primary underline-offset-4 hover:underline">
+            Owner Portal
           </Link>
         </p>
       </CardFooter>
