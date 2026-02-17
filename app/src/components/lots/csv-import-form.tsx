@@ -186,7 +186,7 @@ export function CsvImportForm({ schemeId, onSuccess }: CsvImportFormProps) {
           </Button>
 
           <div
-            className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center"
+            className="relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center cursor-pointer"
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
           >
@@ -209,7 +209,6 @@ export function CsvImportForm({ schemeId, onSuccess }: CsvImportFormProps) {
               accept=".csv"
               onChange={handleFileChange}
               className="absolute inset-0 cursor-pointer opacity-0"
-              style={{ position: 'relative' }}
             />
           </div>
         </CardContent>
