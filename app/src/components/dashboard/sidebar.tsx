@@ -10,6 +10,7 @@ import {
   Landmark,
   Calendar,
   Wrench,
+  HardHat,
   FileText,
   BarChart3,
   Settings,
@@ -29,7 +30,6 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from '@/components/ui/sidebar'
-import { Badge } from '@/components/ui/badge'
 import { SchemeSwitcher } from '@/components/dashboard/scheme-switcher'
 import { UserNav } from '@/components/dashboard/user-nav'
 
@@ -77,15 +77,16 @@ const navItems = [
     title: 'Meetings',
     href: '/meetings',
     icon: Calendar,
-    disabled: true,
-    badge: 'Soon',
   },
   {
     title: 'Maintenance',
     href: '/maintenance',
     icon: Wrench,
-    disabled: true,
-    badge: 'Soon',
+  },
+  {
+    title: 'Tradespeople',
+    href: '/tradespeople',
+    icon: HardHat,
   },
   {
     title: 'Documents',
@@ -145,32 +146,14 @@ export function AppSidebar({ user, organisation, schemes }: AppSidebarProps) {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      asChild={!item.disabled}
+                      asChild
                       isActive={isActive}
                       tooltip={item.title}
-                      disabled={item.disabled}
                     >
-                      {item.disabled ? (
-                        <span>
-                          <item.icon className="size-4" />
-                          <span>{item.title}</span>
-                          {item.badge && (
-                            <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </span>
-                      ) : (
-                        <Link href={item.href}>
-                          <item.icon className="size-4" />
-                          <span>{item.title}</span>
-                          {item.badge && (
-                            <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </Link>
-                      )}
+                      <Link href={item.href}>
+                        <item.icon className="size-4" />
+                        <span>{item.title}</span>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )

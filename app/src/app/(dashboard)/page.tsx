@@ -1,4 +1,4 @@
-import { Building2, Home, Users, DollarSign, Receipt, AlertTriangle, Landmark, FileCheck } from 'lucide-react'
+import { Building2, Home, Users, DollarSign, Receipt, AlertTriangle, Landmark, FileCheck, Wrench, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import {
@@ -19,7 +19,7 @@ export default async function DashboardPage() {
   if (!user) redirect('/login')
 
   // Fetch counts in parallel
-  const [schemesResult, lotsResult, ownersResult, levyItemsResult, overdueResult, trustBalancesResult, unreconciledResult] = await Promise.all([
+  const [schemesResult, lotsResult, ownersResult, levyItemsResult, overdueResult, trustBalancesResult, unreconciledResult, openRequestsResult, upcomingMeetingsResult] = await Promise.all([
     supabase.from('schemes').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('lots').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('lot_ownerships').select('owner_id', { count: 'exact', head: true }).is('ownership_end_date', null),
@@ -27,6 +27,8 @@ export default async function DashboardPage() {
     supabase.from('levy_items').select('balance', { count: 'exact', head: false }).eq('status', 'overdue'),
     supabase.from('financial_years').select('admin_opening_balance, capital_opening_balance').eq('is_current', true),
     supabase.from('transactions').select('id', { count: 'exact', head: true }).eq('is_reconciled', false).is('deleted_at', null),
+    supabase.from('maintenance_requests').select('id', { count: 'exact', head: true }).not('status', 'in', '("completed","closed")'),
+    supabase.from('meetings').select('id', { count: 'exact', head: true }).not('status', 'in', '("completed","cancelled","adjourned")'),
   ])
 
   const totalSchemes = schemesResult.count ?? 0
@@ -47,6 +49,8 @@ export default async function DashboardPage() {
   const totalAdminBalance = fyData.reduce((sum, fy) => sum + (fy.admin_opening_balance ?? 0), 0)
   const totalCapitalBalance = fyData.reduce((sum, fy) => sum + (fy.capital_opening_balance ?? 0), 0)
   const unreconciledCount = unreconciledResult.count ?? 0
+  const openRequestsCount = openRequestsResult.count ?? 0
+  const upcomingMeetingsCount = upcomingMeetingsResult.count ?? 0
 
   return (
     <div className="space-y-6">
@@ -165,6 +169,35 @@ export default async function DashboardPage() {
             </CardTitle>
             <p className="text-xs text-muted-foreground">
               transaction{unreconciledCount !== 1 ? 's' : ''} pending reconciliation
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardDescription>Open Requests</CardDescription>
+            <Wrench className={`size-4 ${openRequestsCount > 0 ? 'text-amber-500' : 'text-muted-foreground'}`} />
+          </CardHeader>
+          <CardContent>
+            <CardTitle className={`text-2xl ${openRequestsCount > 0 ? 'text-amber-600' : ''}`}>
+              {openRequestsCount}
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              maintenance request{openRequestsCount !== 1 ? 's' : ''} in progress
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardDescription>Upcoming Meetings</CardDescription>
+            <Calendar className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <CardTitle className="text-2xl">{upcomingMeetingsCount}</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              meeting{upcomingMeetingsCount !== 1 ? 's' : ''} scheduled
             </p>
           </CardContent>
         </Card>

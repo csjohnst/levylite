@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { Pencil, Plus, Upload, Building2, Home, Users, UserCheck, Receipt, DollarSign, ArrowRight, Landmark, BookOpen, Scale, FileCheck, FileText, Wallet } from 'lucide-react'
+import { Pencil, Plus, Upload, Building2, Home, Users, UserCheck, Receipt, DollarSign, ArrowRight, Landmark, BookOpen, Scale, FileCheck, FileText, Wallet, Wrench, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -112,6 +112,23 @@ export default async function SchemeDetailPage({
     ? new Date(lastReconResult.data[0].reconciled_at).toLocaleDateString('en-AU')
     : null
 
+  // Maintenance & meetings counts
+  const [maintenanceResult, meetingsResult] = await Promise.all([
+    supabase
+      .from('maintenance_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('scheme_id', id)
+      .not('status', 'in', '("completed","closed")'),
+    supabase
+      .from('meetings')
+      .select('id', { count: 'exact', head: true })
+      .eq('scheme_id', id)
+      .not('status', 'in', '("completed","cancelled","adjourned")'),
+  ])
+
+  const openMaintenanceCount = maintenanceResult.count ?? 0
+  const upcomingMeetingsCount = meetingsResult.count ?? 0
+
   // Compute stats
   const totalLots = lots?.length ?? 0
   const totalEntitlement = lots?.reduce((sum, lot) => sum + (lot.unit_entitlement ?? 0), 0) ?? 0
@@ -185,6 +202,8 @@ export default async function SchemeDetailPage({
           <TabsTrigger value="committee">Committee ({committeeMembers?.length ?? 0})</TabsTrigger>
           <TabsTrigger value="levies">Levies</TabsTrigger>
           <TabsTrigger value="trust">Trust</TabsTrigger>
+          <TabsTrigger value="maintenance">Maintenance ({openMaintenanceCount})</TabsTrigger>
+          <TabsTrigger value="meetings">Meetings ({upcomingMeetingsCount})</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="budgets">Budgets</TabsTrigger>
         </TabsList>
@@ -499,6 +518,74 @@ export default async function SchemeDetailPage({
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="maintenance" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Wrench className="size-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Maintenance Requests</CardTitle>
+                  <CardDescription className="mt-1">
+                    Track and manage maintenance requests for this scheme. {openMaintenanceCount} open request{openMaintenanceCount !== 1 ? 's' : ''}.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <Button asChild>
+                  <Link href={`/schemes/${id}/maintenance`}>
+                    View All Requests
+                    <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href={`/schemes/${id}/maintenance/new`}>
+                    <Plus className="mr-2 size-4" />
+                    New Request
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="meetings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Calendar className="size-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Meetings</CardTitle>
+                  <CardDescription className="mt-1">
+                    Schedule and manage meetings for this scheme. {upcomingMeetingsCount} upcoming meeting{upcomingMeetingsCount !== 1 ? 's' : ''}.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <Button asChild>
+                  <Link href={`/schemes/${id}/meetings`}>
+                    View All Meetings
+                    <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href={`/schemes/${id}/meetings/new`}>
+                    <Plus className="mr-2 size-4" />
+                    New Meeting
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-4">
