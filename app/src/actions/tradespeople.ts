@@ -100,7 +100,7 @@ export async function createTradesperson(data: {
 
   // Get the user's organisation_id
   const { data: membership, error: membershipError } = await supabase
-    .from('organisation_members')
+    .from('organisation_users')
     .select('organisation_id')
     .eq('user_id', user.id)
     .limit(1)
