@@ -72,8 +72,6 @@ const navItems = [
     title: 'Trust Accounting',
     href: '/trust',
     icon: Landmark,
-    disabled: true,
-    badge: 'Soon',
   },
   {
     title: 'Meetings',

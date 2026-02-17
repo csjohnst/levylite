@@ -132,13 +132,81 @@ export async function recordPayment(schemeId: string, data: PaymentFormData) {
     }
   }
 
+  // 5. Create a corresponding transaction in the trust accounting ledger
+  // Map Phase 2 payment_method to Phase 3 payment_method
+  const methodMap: Record<string, string> = {
+    bank_transfer: 'eft',
+    cheque: 'cheque',
+    cash: 'cash',
+    direct_debit: 'eft',
+    bpay: 'bpay',
+  }
+  const txnPaymentMethod = methodMap[parsed.data.payment_method] ?? 'eft'
+
+  // Look up the Levy Income - Admin category (code 4100)
+  const { data: levyIncomeAccount } = await supabase
+    .from('chart_of_accounts')
+    .select('id')
+    .eq('code', '4100')
+    .or(`scheme_id.eq.${schemeId},scheme_id.is.null`)
+    .order('scheme_id', { ascending: true, nullsFirst: false })
+    .limit(1)
+    .maybeSingle()
+
+  let transaction = null
+  if (levyIncomeAccount) {
+    // Get lot info for description
+    const { data: lot } = await supabase
+      .from('lots')
+      .select('lot_number')
+      .eq('id', parsed.data.lot_id)
+      .single()
+
+    const lotLabel = lot?.lot_number ?? parsed.data.lot_id
+    const refLabel = parsed.data.reference ? ` - ${parsed.data.reference}` : ''
+
+    const { data: txn, error: txnError } = await supabase
+      .from('transactions')
+      .insert({
+        scheme_id: schemeId,
+        lot_id: parsed.data.lot_id,
+        transaction_date: parsed.data.payment_date,
+        transaction_type: 'receipt',
+        fund_type: 'admin', // TODO: Split admin/CW portions into separate transactions per fund
+        category_id: levyIncomeAccount.id,
+        amount: parsed.data.amount,
+        gst_amount: 0,
+        description: `Levy payment - Lot ${lotLabel}${refLabel}`,
+        reference: parsed.data.reference ?? null,
+        payment_method: txnPaymentMethod,
+        created_by: user.id,
+      })
+      .select()
+      .single()
+
+    if (!txnError && txn) {
+      transaction = txn
+
+      // Link payment_allocations to this transaction
+      if (allocations.length > 0) {
+        await supabase
+          .from('payment_allocations')
+          .update({ transaction_id: txn.id })
+          .eq('payment_id', payment.id)
+      }
+    }
+  }
+
   revalidatePath(`/schemes/${schemeId}`)
   revalidatePath(`/schemes/${schemeId}/levies`)
   revalidatePath(`/schemes/${schemeId}/payments`)
+  revalidatePath(`/schemes/${schemeId}/trust-accounting`)
+  revalidatePath(`/schemes/${schemeId}/trust-accounting/transactions`)
 
   return {
     data: {
       payment,
+      transaction,
       allocations,
       totalAllocated: Math.round(allocations.reduce((sum, a) => sum + a.allocated_amount, 0) * 100) / 100,
       unallocatedAmount: remainingAmount > 0 ? remainingAmount : undefined,
@@ -298,4 +366,40 @@ export async function getOutstandingLevyItems(lotId: string) {
 
   if (error) return { error: error.message }
   return { data: items }
+}
+
+/**
+ * Get the linked transaction for a payment (Phase 2 → Phase 3 bridge).
+ * Looks up via payment_allocations.transaction_id.
+ */
+export async function getPaymentTransaction(paymentId: string) {
+  const result = await getAuth()
+  if ('error' in result && !('supabase' in result)) return { error: result.error }
+  const { supabase } = result as Exclude<typeof result, { error: string }>
+
+  // Find the transaction_id from payment_allocations for this payment
+  const { data: allocation, error: allocError } = await supabase
+    .from('payment_allocations')
+    .select('transaction_id')
+    .eq('payment_id', paymentId)
+    .not('transaction_id', 'is', null)
+    .limit(1)
+    .maybeSingle()
+
+  if (allocError) return { error: allocError.message }
+  if (!allocation?.transaction_id) return { data: null }
+
+  const { data: transaction, error: txnError } = await supabase
+    .from('transactions')
+    .select(`
+      *,
+      transaction_lines(id, account_id, line_type, amount, description,
+        chart_of_accounts:account_id(id, code, name)
+      )
+    `)
+    .eq('id', allocation.transaction_id)
+    .single()
+
+  if (txnError) return { error: txnError.message }
+  return { data: transaction }
 }

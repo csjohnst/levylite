@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { Pencil, Plus, Upload, Building2, Home, Users, UserCheck, Receipt, DollarSign, ArrowRight } from 'lucide-react'
+import { Pencil, Plus, Upload, Building2, Home, Users, UserCheck, Receipt, DollarSign, ArrowRight, Landmark, BookOpen, Scale, FileCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -24,6 +24,7 @@ import { Separator } from '@/components/ui/separator'
 import { LotsTab } from '@/components/schemes/lots-tab'
 import { OwnersTab } from '@/components/schemes/owners-tab'
 import { CommitteeTab } from '@/components/schemes/committee-tab'
+import { getFundBalanceSummary } from '@/actions/reports'
 
 export default async function SchemeDetailPage({
   params,
@@ -84,6 +85,32 @@ export default async function SchemeDetailPage({
   const totalPaid = levyItems.reduce((sum, i) => sum + (i.amount_paid ?? 0), 0)
   const collectionRate = totalLevied > 0 ? Math.round((totalPaid / totalLevied) * 100) : 0
   const overdueCount = levyItems.filter(i => i.status === 'overdue').length
+
+  // Trust accounting data
+  const [fundResult, unreconciledResult, lastReconResult] = await Promise.all([
+    getFundBalanceSummary(id),
+    supabase
+      .from('transactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('scheme_id', id)
+      .eq('is_reconciled', false)
+      .is('deleted_at', null),
+    supabase
+      .from('reconciliations')
+      .select('reconciled_at')
+      .eq('scheme_id', id)
+      .eq('status', 'reconciled')
+      .order('reconciled_at', { ascending: false })
+      .limit(1),
+  ])
+
+  const fundBalances = fundResult.data ?? []
+  const adminBalance = fundBalances.find(f => f.fund_type === 'admin')
+  const capitalBalance = fundBalances.find(f => f.fund_type === 'capital_works')
+  const unreconciledCount = unreconciledResult.count ?? 0
+  const lastReconciliation = lastReconResult.data?.[0]?.reconciled_at
+    ? new Date(lastReconResult.data[0].reconciled_at).toLocaleDateString('en-AU')
+    : null
 
   // Compute stats
   const totalLots = lots?.length ?? 0
@@ -157,6 +184,7 @@ export default async function SchemeDetailPage({
           <TabsTrigger value="owners">Owners ({ownerIds.size})</TabsTrigger>
           <TabsTrigger value="committee">Committee ({committeeMembers?.length ?? 0})</TabsTrigger>
           <TabsTrigger value="levies">Levies</TabsTrigger>
+          <TabsTrigger value="trust">Trust</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -349,6 +377,125 @@ export default async function SchemeDetailPage({
                 <ArrowRight className="ml-2 size-4" />
               </Link>
             </Button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="trust" className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardDescription>Admin Fund</CardDescription>
+                <Landmark className="size-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl">
+                  {'$' + (adminBalance?.closing_balance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">Closing balance</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardDescription>Capital Works Fund</CardDescription>
+                <Landmark className="size-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl">
+                  {'$' + (capitalBalance?.closing_balance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">Closing balance</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardDescription>Unreconciled</CardDescription>
+                <FileCheck className={`size-4 ${unreconciledCount > 0 ? 'text-amber-500' : 'text-muted-foreground'}`} />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className={`text-2xl ${unreconciledCount > 0 ? 'text-amber-600' : ''}`}>
+                  {unreconciledCount}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">transaction{unreconciledCount !== 1 ? 's' : ''} pending</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardDescription>Last Reconciliation</CardDescription>
+                <Scale className="size-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl text-base font-bold">
+                  {lastReconciliation ?? 'Never'}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">most recent</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card className="flex flex-col">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                    <BookOpen className="size-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-base">Ledger</CardTitle>
+                </div>
+                <CardDescription className="mt-2">
+                  View transactions, record receipts and payments.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="mt-auto">
+                <Button asChild variant="outline" className="w-full">
+                  <Link href={`/schemes/${id}/trust`}>
+                    View Ledger
+                    <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="flex flex-col">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                    <FileCheck className="size-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-base">Bank Reconciliation</CardTitle>
+                </div>
+                <CardDescription className="mt-2">
+                  Upload bank statements and match transactions.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="mt-auto">
+                <Button asChild variant="outline" className="w-full">
+                  <Link href={`/schemes/${id}/trust/reconciliation`}>
+                    Reconcile
+                    <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="flex flex-col">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Scale className="size-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-base">Financial Reports</CardTitle>
+                </div>
+                <CardDescription className="mt-2">
+                  Trial balance, fund summary, income statement.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="mt-auto">
+                <Button asChild variant="outline" className="w-full">
+                  <Link href={`/schemes/${id}/trust/reports`}>
+                    View Reports
+                    <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>

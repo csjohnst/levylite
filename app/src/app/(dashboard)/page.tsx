@@ -1,4 +1,4 @@
-import { Building2, Home, Users, DollarSign, Receipt, AlertTriangle } from 'lucide-react'
+import { Building2, Home, Users, DollarSign, Receipt, AlertTriangle, Landmark, FileCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import {
@@ -19,12 +19,14 @@ export default async function DashboardPage() {
   if (!user) redirect('/login')
 
   // Fetch counts in parallel
-  const [schemesResult, lotsResult, ownersResult, levyItemsResult, overdueResult] = await Promise.all([
+  const [schemesResult, lotsResult, ownersResult, levyItemsResult, overdueResult, trustBalancesResult, unreconciledResult] = await Promise.all([
     supabase.from('schemes').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('lots').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('lot_ownerships').select('owner_id', { count: 'exact', head: true }).is('ownership_end_date', null),
     supabase.from('levy_items').select('total_levy_amount, amount_paid, status'),
     supabase.from('levy_items').select('balance', { count: 'exact', head: false }).eq('status', 'overdue'),
+    supabase.from('financial_years').select('admin_opening_balance, capital_opening_balance').eq('is_current', true),
+    supabase.from('transactions').select('id', { count: 'exact', head: true }).eq('is_reconciled', false).is('deleted_at', null),
   ])
 
   const totalSchemes = schemesResult.count ?? 0
@@ -39,6 +41,12 @@ export default async function DashboardPage() {
 
   const overdueItems = overdueResult.data ?? []
   const overdueAmount = overdueItems.reduce((sum, i) => sum + (i.balance ?? 0), 0)
+
+  // Trust accounting stats
+  const fyData = trustBalancesResult.data ?? []
+  const totalAdminBalance = fyData.reduce((sum, fy) => sum + (fy.admin_opening_balance ?? 0), 0)
+  const totalCapitalBalance = fyData.reduce((sum, fy) => sum + (fy.capital_opening_balance ?? 0), 0)
+  const unreconciledCount = unreconciledResult.count ?? 0
 
   return (
     <div className="space-y-6">
@@ -120,6 +128,43 @@ export default async function DashboardPage() {
             </CardTitle>
             <p className="text-xs text-muted-foreground">
               {overdueItems.length} overdue item{overdueItems.length !== 1 ? 's' : ''}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardDescription>Admin Fund Balance</CardDescription>
+            <Landmark className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <CardTitle className="text-2xl">{formatCurrency(totalAdminBalance)}</CardTitle>
+            <p className="text-xs text-muted-foreground">Across all schemes</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardDescription>Capital Works Balance</CardDescription>
+            <Landmark className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <CardTitle className="text-2xl">{formatCurrency(totalCapitalBalance)}</CardTitle>
+            <p className="text-xs text-muted-foreground">Across all schemes</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardDescription>Unreconciled</CardDescription>
+            <FileCheck className={`size-4 ${unreconciledCount > 0 ? 'text-amber-500' : 'text-muted-foreground'}`} />
+          </CardHeader>
+          <CardContent>
+            <CardTitle className={`text-2xl ${unreconciledCount > 0 ? 'text-amber-600' : ''}`}>
+              {unreconciledCount}
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              transaction{unreconciledCount !== 1 ? 's' : ''} pending reconciliation
             </p>
           </CardContent>
         </Card>
