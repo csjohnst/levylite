@@ -49,9 +49,9 @@ function OwnerActivateContent() {
     }
 
     try {
-      const decoded = JSON.parse(
-        Buffer.from(token, 'base64url').toString('utf-8')
-      )
+      // base64url → base64 → decode (browser-safe, no Node Buffer needed)
+      const base64 = token.replace(/-/g, '+').replace(/_/g, '/')
+      const decoded = JSON.parse(atob(base64))
       if (!decoded.ownerId || !decoded.portalUserId) {
         throw new Error('Invalid token')
       }
