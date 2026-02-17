@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LevyLite — Affordable Strata Management Software
 
-## Getting Started
+> Strata management software that doesn't cost the earth.
 
-First, run the development server:
+**Live site:** [levylite.com.au](https://levylite.com.au)
+
+---
+
+## What is LevyLite?
+
+LevyLite is a SaaS strata management platform built for small Australian operators — sole practitioners, small agencies, and self-managed strata schemes. Enterprise strata software costs $5K–$20K/year and requires 600+ lots minimum. LevyLite starts free and scales with you.
+
+**Free tier:** 5 lots, 1 scheme — forever free, no credit card required.  
+**Paid plans:** From $0.75/lot/month. No minimums. No sales calls.
+
+---
+
+## Features
+
+- **Levy management** — Track levies, send notices, reconcile payments
+- **AGM tools** — Agenda builder, proxy forms, minutes templates, deadline reminders
+- **Owner portal** — Self-service portal so owners can access documents and make payments
+- **Document management** — Store bylaws, certificates, insurance docs, meeting minutes
+- **Trust accounting** — BPAY, EFT, and manual payment tracking with reconciliation
+- **Mobile-friendly** — Works on desktop, tablet, and phone
+
+---
+
+## Tech Stack
+
+| Layer | Tech |
+|-------|------|
+| Framework | Next.js 15 (App Router) |
+| Styling | Tailwind CSS |
+| UI Components | shadcn/ui |
+| Language | TypeScript |
+| Deployment | Netlify |
+| Fonts | Geist (via `next/font`) |
+| Email/Waitlist | Kit (ConvertKit) |
+
+---
+
+## Getting Started (Development)
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Setup
 
 ```bash
+git clone https://github.com/csjohnst/levylite.git
+cd levylite
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the site.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env.local` file:
 
-## Learn More
+```env
+# Kit (ConvertKit) — waitlist signup form
+NEXT_PUBLIC_KIT_FORM_ID=your_kit_form_id
+KIT_API_KEY=your_kit_api_key
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── layout.tsx       # Root layout — metadata, schema markup, fonts
+│   ├── page.tsx         # Landing page (hero, features, pricing, CTA)
+│   ├── sitemap.ts       # Auto-generated sitemap for SEO
+│   └── robots.ts        # robots.txt for SEO
+├── components/
+│   ├── signup-form.tsx  # Waitlist/early access signup (Kit integration)
+│   └── ui/              # shadcn/ui component library
+└── lib/
+    └── utils.ts         # Tailwind class merging utility
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## SEO
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Metadata:** Full OpenGraph, Twitter card, canonical URL via Next.js `Metadata` API
+- **Schema markup:** `Organization` + `SoftwareApplication` JSON-LD in layout
+- **Sitemap:** Auto-generated at `/sitemap.xml` via `src/app/sitemap.ts`
+- **Robots.txt:** Served at `/robots.txt` via `src/app/robots.ts`
+- **Target keywords:** strata management software australia, affordable strata software, small strata operator
+
+---
+
+## Deployment
+
+Deployed to Netlify via Git push. No manual steps required.
+
+**Main branch** → Production at `levylite.com.au`  
+**Feature branches** → Preview deploys (Netlify auto-creates preview URLs)
+
+---
+
+## Development Notes
+
+- This is a marketing/waitlist site. The full SaaS product is under development.
+- Waitlist signups go to Kit (ConvertKit) — see `src/components/signup-form.tsx`
+- Pricing tiers are defined in `src/app/page.tsx` — update there for any pricing changes
+- The `dashboard.png` in `/public/` is a mockup screenshot for the hero section
+
+---
+
+## Contributing
+
+This is a private project. If you're Kai — check the kanban board in the Kai Dashboard for queued tasks.
+
+---
+
+*Built by [Kokoro Software](https://kokorosoftware.com)*
