@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
@@ -136,8 +137,8 @@ export default async function TrialBalancePage({
               </TableHeader>
               <TableBody>
                 {grouped.map(group => (
-                  <>
-                    <TableRow key={`header-${group.type}`} className="bg-muted/50">
+                  <Fragment key={group.type}>
+                    <TableRow className="bg-muted/50">
                       <TableCell colSpan={5} className="font-semibold text-sm uppercase tracking-wide py-2">
                         {group.label}
                       </TableCell>
@@ -157,7 +158,7 @@ export default async function TrialBalancePage({
                         </TableCell>
                       </TableRow>
                     ))}
-                  </>
+                  </Fragment>
                 ))}
                 {/* Totals row */}
                 <TableRow className="bg-muted font-bold">
