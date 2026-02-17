@@ -49,6 +49,15 @@ export default async function ReconciliationWorkspacePage({
 
   if (!statement || statement.scheme_id !== id) notFound()
 
+  // Fetch chart of accounts for the create-from-bank-line dialog
+  const { data: accounts } = await supabase
+    .from('chart_of_accounts')
+    .select('id, code, name, account_type, fund_type')
+    .or(`scheme_id.eq.${id},scheme_id.is.null`)
+    .eq('is_active', true)
+    .in('account_type', ['income', 'expense'])
+    .order('code')
+
   const bankLines = (statement.bank_statement_lines ?? []) as Array<{
     id: string
     line_date: string
@@ -97,6 +106,7 @@ export default async function ReconciliationWorkspacePage({
         bankLines={bankLines}
         closingBalance={statement.closing_balance}
         isFinalized={isFinalized}
+        accounts={(accounts ?? []) as Array<{ id: string; code: string; name: string; account_type: string; fund_type: string | null }>}
       />
     </div>
   )

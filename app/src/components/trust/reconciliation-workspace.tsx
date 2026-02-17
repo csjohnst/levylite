@@ -56,12 +56,21 @@ interface BankLine {
   } | null
 }
 
+interface Account {
+  id: string
+  code: string
+  name: string
+  account_type: string
+  fund_type: string | null
+}
+
 interface ReconciliationWorkspaceProps {
   bankStatementId: string
   schemeId: string
   bankLines: BankLine[]
   closingBalance: number
   isFinalized: boolean
+  accounts: Account[]
 }
 
 function formatCurrency(amount: number): string {
@@ -79,6 +88,7 @@ export function ReconciliationWorkspace({
   bankLines,
   closingBalance,
   isFinalized,
+  accounts,
 }: ReconciliationWorkspaceProps) {
   const router = useRouter()
   const [autoMatching, setAutoMatching] = useState(false)
@@ -88,6 +98,7 @@ export function ReconciliationWorkspace({
   const [createType, setCreateType] = useState<'receipt' | 'payment'>('receipt')
   const [createFund, setCreateFund] = useState<'admin' | 'capital_works'>('admin')
   const [createDescription, setCreateDescription] = useState('')
+  const [createCategory, setCreateCategory] = useState('')
 
   const matchedLines = bankLines.filter(l => l.matched)
   const unmatchedLines = bankLines.filter(l => !l.matched)
@@ -98,7 +109,13 @@ export function ReconciliationWorkspace({
     setCreateType(line.credit_amount > 0 ? 'receipt' : 'payment')
     setCreateFund('admin')
     setCreateDescription(line.description || '')
+    setCreateCategory('')
   }
+
+  // Filter accounts based on current transaction type
+  const filteredAccounts = accounts.filter(a =>
+    createType === 'receipt' ? a.account_type === 'income' : a.account_type === 'expense'
+  )
 
   async function handleCreateTransaction() {
     if (!creatingForLine) return
@@ -111,6 +128,7 @@ export function ReconciliationWorkspace({
       transaction_date: line.line_date,
       transaction_type: createType,
       fund_type: createFund,
+      category_id: createCategory || undefined,
       amount,
       gst_amount: 0,
       description: createDescription || line.description || 'Bank transaction',
@@ -394,6 +412,22 @@ export function ReconciliationWorkspace({
               </div>
 
               <div className="space-y-2">
+                <Label>Category</Label>
+                <Select value={createCategory} onValueChange={setCreateCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredAccounts.map(a => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.code} - {a.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label>Description</Label>
                 <Input
                   value={createDescription}
@@ -404,7 +438,7 @@ export function ReconciliationWorkspace({
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreatingForLine(null)}>Cancel</Button>
-            <Button onClick={handleCreateTransaction} disabled={createSubmitting}>
+            <Button onClick={handleCreateTransaction} disabled={createSubmitting || !createCategory}>
               {createSubmitting ? 'Creating...' : 'Create & Match'}
             </Button>
           </DialogFooter>
