@@ -50,7 +50,7 @@ export default async function SchemeDetailPage({
   // Fetch lots with owners
   const { data: lots, error: lotsError } = await supabase
     .from('lots')
-    .select('*, lot_ownerships(*, owners(id, first_name, last_name, email))')
+    .select('*, lot_ownerships(*, owners(id, first_name, last_name, email, phone_mobile, portal_user_id, portal_invite_sent_at, portal_invite_accepted_at, portal_activated_at))')
     .eq('scheme_id', id)
     .eq('status', 'active')
     .order('lot_number')
