@@ -60,6 +60,8 @@ export function LevyScheduleForm({
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [frequency, setFrequency] = useState<string>(initialData?.frequency ?? 'quarterly')
+  const [adminTotal, setAdminTotal] = useState(Number(initialData?.admin_fund_total) || 0)
+  const [capitalTotal, setCapitalTotal] = useState(Number(initialData?.capital_works_fund_total) || 0)
 
   function getPeriodsForFrequency(freq: string): number {
     return FREQUENCIES.find(f => f.value === freq)?.periods ?? 4
@@ -106,9 +108,6 @@ export function LevyScheduleForm({
     router.push(`/schemes/${schemeId}/levies/${schedule.id}`)
   }
 
-  // Compute per-period preview
-  const adminTotal = Number(initialData?.admin_fund_total) || 0
-  const capitalTotal = Number(initialData?.capital_works_fund_total) || 0
   const periods = getPeriodsForFrequency(frequency)
 
   return (
@@ -165,6 +164,7 @@ export function LevyScheduleForm({
                 min="0.01"
                 placeholder="e.g. 50000.00"
                 defaultValue={initialData?.admin_fund_total ?? ''}
+                onChange={e => setAdminTotal(Number(e.target.value) || 0)}
               />
               {errors.admin_fund_total && (
                 <p className="text-sm text-destructive">{errors.admin_fund_total}</p>
@@ -180,6 +180,7 @@ export function LevyScheduleForm({
                 min="0"
                 placeholder="e.g. 20000.00"
                 defaultValue={initialData?.capital_works_fund_total ?? ''}
+                onChange={e => setCapitalTotal(Number(e.target.value) || 0)}
               />
               {errors.capital_works_fund_total && (
                 <p className="text-sm text-destructive">{errors.capital_works_fund_total}</p>
