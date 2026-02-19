@@ -342,3 +342,58 @@ export async function getGlobalOwners() {
     }))
   }
 }
+
+/**
+ * Update the ownership type and/or percentage for an existing lot_ownership record.
+ * Used by the edit owner page to allow changing 'Sole Owner' → 'Tenants in Common' etc.
+ */
+export async function updateLotOwnership(
+  ownershipId: string,
+  data: {
+    ownership_type: 'sole' | 'joint-tenants' | 'tenants-in-common'
+    ownership_percentage?: number
+  }
+) {
+  const result = await getAuth()
+  if ('error' in result && !('supabase' in result)) return { error: result.error }
+  const { supabase, user } = result as Exclude<typeof result, { error: string }>
+
+  const { data: ownership, error } = await supabase
+    .from('lot_ownerships')
+    .update({
+      ownership_type: data.ownership_type,
+      ...(data.ownership_percentage !== undefined ? { ownership_percentage: data.ownership_percentage } : {}),
+    })
+    .eq('id', ownershipId)
+    .select('lot_id, lots(scheme_id)')
+    .single()
+
+  if (error) return { error: error.message }
+
+  const lot = (ownership as unknown as { lots: { scheme_id: string } }).lots
+  if (lot?.scheme_id) {
+    revalidatePath(`/schemes/${lot.scheme_id}`)
+  }
+
+  return { data: ownership }
+}
+
+/**
+ * Get all current lot_ownership records for a given owner.
+ * Used by the edit page to show current ownership type for each lot.
+ */
+export async function getLotOwnershipsByOwner(ownerId: string) {
+  const result = await getAuth()
+  if ('error' in result && !('supabase' in result)) return { error: result.error }
+  const { supabase } = result as Exclude<typeof result, { error: string }>
+
+  const { data, error } = await supabase
+    .from('lot_ownerships')
+    .select('id, lot_id, ownership_type, ownership_percentage, lots(lot_number, unit_number, scheme_id)')
+    .eq('owner_id', ownerId)
+    .is('ownership_end_date', null)
+    .order('created_at')
+
+  if (error) return { error: error.message }
+  return { data }
+}
