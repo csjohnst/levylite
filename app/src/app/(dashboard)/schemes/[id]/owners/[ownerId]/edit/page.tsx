@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { OwnerForm } from '@/components/owners/owner-form'
-import { updateOwner } from '@/actions/owners'
+import { OwnershipTypeEditor } from '@/components/owners/ownership-type-editor'
+import { updateOwner, getLotOwnershipsByOwner, updateLotOwnership } from '@/actions/owners'
 import type { OwnerFormData } from '@/actions/owners'
 
 export default async function EditOwnerPage({
@@ -21,6 +22,9 @@ export default async function EditOwnerPage({
     .single()
 
   if (error || !owner) notFound()
+
+  // Fetch current lot_ownership records so we can display/edit ownership_type
+  const { data: ownerships } = await getLotOwnershipsByOwner(ownerId)
 
   const initialData: Partial<OwnerFormData> = {
     title: owner.title,
@@ -49,6 +53,14 @@ export default async function EditOwnerPage({
     return updateOwner(ownerId, data)
   }
 
+  async function handleUpdateOwnership(
+    ownershipId: string,
+    data: { ownership_type: 'sole' | 'joint-tenants' | 'tenants-in-common'; ownership_percentage?: number }
+  ) {
+    'use server'
+    return updateLotOwnership(ownershipId, data)
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
@@ -57,6 +69,21 @@ export default async function EditOwnerPage({
           Update details for {owner.first_name} {owner.last_name}
         </p>
       </div>
+
+      {/* Ownership type editor — shown when owner has lot assignments */}
+      {ownerships && ownerships.length > 0 && (
+        <OwnershipTypeEditor
+          ownerships={ownerships.map(o => ({
+            id: o.id,
+            lot_id: o.lot_id,
+            ownership_type: o.ownership_type as 'sole' | 'joint-tenants' | 'tenants-in-common',
+            ownership_percentage: o.ownership_percentage,
+            lot: o.lots as unknown as { lot_number: string; unit_number: string | null; scheme_id: string } | null,
+          }))}
+          onUpdate={handleUpdateOwnership}
+        />
+      )}
+
       <OwnerForm
         schemeId={schemeId}
         initialData={initialData}
