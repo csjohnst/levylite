@@ -37,11 +37,11 @@ interface LotData {
   existing_opening_balance: number
   has_opening_balance: boolean
   lot_ownerships: Array<{
-    owners: {
+    owners: Array<{
       id: string
       first_name: string
       last_name: string
-    } | null
+    }>
   }> | null
 }
 
@@ -241,7 +241,7 @@ export function OpeningBalanceForm({ schemeId }: { schemeId: string }) {
               </TableHeader>
               <TableBody>
                 {lots.map(lot => {
-                  const owner = lot.lot_ownerships?.[0]?.owners
+                  const owner = lot.lot_ownerships?.[0]?.owners?.[0]
                   const ownerName = owner
                     ? `${owner.first_name} ${owner.last_name}`
                     : 'No owner'
