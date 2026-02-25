@@ -39,7 +39,7 @@ export async function updateSession(request: NextRequest) {
   const publicRoutes = ['/login', '/signup', '/auth/callback', '/auth/confirm', '/owner/login', '/owner/activate']
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith(route + '/')
-  )
+  ) || pathname.startsWith('/api/webhooks')
 
   const isOwnerRoute = pathname.startsWith('/owner')
 

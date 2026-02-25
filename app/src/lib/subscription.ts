@@ -43,9 +43,10 @@ export interface PricingResult {
 // Graduated Pricing Tiers
 // ============================================================
 
+// Paid plan pricing — no free tier. The free plan (≤10 lots, limited features)
+// is a separate plan-level gate, not a pricing discount.
 const PRICING_TIERS = [
-  { min: 1, max: 10, rate: 0, label: 'First 10 lots (free)' },
-  { min: 11, max: 100, rate: 2.5, label: 'Lots 11-100' },
+  { min: 1, max: 100, rate: 2.5, label: 'Lots 1-100' },
   { min: 101, max: 500, rate: 1.5, label: 'Lots 101-500' },
   { min: 501, max: 2000, rate: 1.0, label: 'Lots 501-2,000' },
   { min: 2001, max: Infinity, rate: 0.75, label: 'Lots 2,001+' },

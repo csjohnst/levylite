@@ -25,7 +25,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Only managers can manage billing' }, { status: 403 })
     }
 
-    const { billingInterval } = await request.json() as { billingInterval: 'monthly' | 'annual' }
+    const { billingInterval, quantity: requestedQuantity } = await request.json() as {
+      billingInterval: 'monthly' | 'annual'
+      quantity?: number
+    }
     if (!billingInterval || !['monthly', 'annual'].includes(billingInterval)) {
       return NextResponse.json({ error: 'Invalid billing interval' }, { status: 400 })
     }
@@ -72,7 +75,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to count lots' }, { status: 500 })
     }
 
-    const quantity = Math.max(lotCount ?? 1, 1) // Minimum 1 lot
+    // Use the requested quantity from the calculator, fall back to DB lot count.
+    // Minimum 1 lot for Stripe line item.
+    const quantity = Math.max(requestedQuantity ?? lotCount ?? 1, 1)
 
     // Get or create Stripe customer
     let stripeCustomerId = subscription.stripe_customer_id
@@ -89,6 +94,7 @@ export async function POST(request: Request) {
         email: user.email,
         name: org?.name ?? undefined,
         metadata: { organisation_id: orgId },
+        address: { country: 'AU' },
       })
 
       stripeCustomerId = customer.id
@@ -102,11 +108,15 @@ export async function POST(request: Request) {
     }
 
     // Create checkout session
+    // Prices in Stripe must be created with tax_behavior='exclusive' so GST is added on top.
+    // automatic_tax requires Stripe Tax to be enabled in the Stripe dashboard.
     const origin = request.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? ''
     const session = await getStripe().checkout.sessions.create({
       customer: stripeCustomerId,
+      customer_update: { address: 'auto' },
       payment_method_types: ['card', 'au_becs_debit'],
       mode: 'subscription',
+      automatic_tax: { enabled: true },
       line_items: [
         {
           price: priceId,

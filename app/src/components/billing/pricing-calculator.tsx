@@ -30,7 +30,7 @@ import {
 interface PricingCalculatorProps {
   initialLots?: number
   initialInterval?: BillingInterval
-  onSelect?: (interval: BillingInterval) => void
+  onSelect?: (interval: BillingInterval, lots: number) => void
   showSelectButtons?: boolean
   loading?: boolean
 }
@@ -110,9 +110,7 @@ export function PricingCalculator({
                     {tier.lotsInTier}
                   </TableCell>
                   <TableCell className="text-right">
-                    {tier.ratePerLot === 0
-                      ? 'FREE'
-                      : formatCurrency(tier.ratePerLot)}
+                    {formatCurrency(tier.ratePerLot)}
                   </TableCell>
                   <TableCell className="text-right">
                     {formatCurrency(tier.tierTotal)}
@@ -156,19 +154,12 @@ export function PricingCalculator({
           </p>
         )}
 
-        {lots <= 10 && (
-          <p className="text-sm text-muted-foreground">
-            Up to 10 lots are included free on the Free plan. You only pay when
-            you exceed 10 lots or need premium features.
-          </p>
-        )}
-
-        {showSelectButtons && lots > 10 && (
+        {showSelectButtons && (
           <>
             <Separator />
             <div className="grid gap-4 sm:grid-cols-2">
               <button
-                onClick={() => onSelect?.('monthly')}
+                onClick={() => onSelect?.('monthly', lots)}
                 disabled={loading}
                 className="flex flex-col items-center gap-2 rounded-lg border-2 border-muted p-6 transition-colors hover:border-[#02667F] hover:bg-[#02667F]/5 disabled:opacity-50"
               >
@@ -183,7 +174,7 @@ export function PricingCalculator({
                 </span>
               </button>
               <button
-                onClick={() => onSelect?.('annual')}
+                onClick={() => onSelect?.('annual', lots)}
                 disabled={loading}
                 className="relative flex flex-col items-center gap-2 rounded-lg border-2 border-[#0090B7] bg-[#0090B7]/5 p-6 transition-colors hover:bg-[#0090B7]/10 disabled:opacity-50"
               >

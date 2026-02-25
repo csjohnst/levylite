@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { fireAndForgetLotSync } from '@/lib/sync-lot-count'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -12,7 +13,7 @@ const lotSchema = z.object({
   unit_entitlement: z.number().int().min(0, 'Unit entitlement must be 0 or greater'),
   voting_entitlement: z.number().int().positive().optional().nullable(),
   floor_area_sqm: z.number().positive().optional().nullable(),
-  balcony_area_sqm: z.number().positive().optional().nullable(),
+  balcony_area_sqm: z.number().min(0).optional().nullable(),
   bedrooms: z.number().int().min(0).optional().nullable(),
   bathrooms: z.number().min(0).optional().nullable(),
   car_bays: z.number().int().min(0).optional().nullable(),
@@ -81,6 +82,7 @@ export async function createLot(schemeId: string, data: LotFormData) {
     .single()
 
   if (error) return { error: error.message }
+  fireAndForgetLotSync(schemeId)
   revalidatePath(`/schemes/${schemeId}`)
   return { data: lot }
 }
@@ -128,7 +130,10 @@ export async function deleteLot(lotId: string) {
     .eq('id', lotId)
 
   if (error) return { error: error.message }
-  if (lot) revalidatePath(`/schemes/${lot.scheme_id}`)
+  if (lot) {
+    fireAndForgetLotSync(lot.scheme_id)
+    revalidatePath(`/schemes/${lot.scheme_id}`)
+  }
   return { data: true }
 }
 
@@ -303,6 +308,7 @@ export async function importLotsFromCSV(schemeId: string, csvText: string) {
     }
   }
 
+  fireAndForgetLotSync(schemeId)
   revalidatePath(`/schemes/${schemeId}`)
   return {
     data: {

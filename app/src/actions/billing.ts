@@ -141,7 +141,7 @@ export async function getUsageStats() {
   // Count users in organisation
   const { count: totalUsers, error: usersError } = await supabase
     .from('organisation_users')
-    .select('id', { count: 'exact', head: true })
+    .select('user_id', { count: 'exact', head: true })
     .eq('organisation_id', orgId)
 
   if (usersError) return { error: usersError.message }

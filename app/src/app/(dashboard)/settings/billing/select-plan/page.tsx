@@ -55,13 +55,13 @@ export default function SelectPlanPage() {
     })
   }, [])
 
-  async function handleSelectPlan(interval: BillingInterval) {
+  async function handleSelectPlan(interval: BillingInterval, selectedLots: number) {
     setLoading(true)
     try {
       const res = await fetch('/api/billing/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ billingInterval: interval }),
+        body: JSON.stringify({ billingInterval: interval, quantity: selectedLots }),
       })
       const data = await res.json()
       if (data.sessionUrl) {
@@ -148,7 +148,7 @@ export default function SelectPlanPage() {
             </CardDescription>
             <p className="text-3xl font-bold mt-2">From $2.50</p>
             <p className="text-sm text-muted-foreground">
-              per lot/month ex GST (first 10 free)
+              per lot/month ex GST
             </p>
           </CardHeader>
           <CardContent>

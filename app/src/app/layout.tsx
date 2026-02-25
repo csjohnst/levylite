@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -17,6 +18,11 @@ export default function RootLayout({
       <body>
         {children}
         <Toaster />
+        <Script
+          src="https://umami.kokorosoftware.com/script.js"
+          data-website-id="24992dcf-2877-43a6-b362-3875a091cbd9"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
