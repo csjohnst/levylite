@@ -109,6 +109,11 @@ export default function RootLayout({
           }}
         />
         {children}
+        <Script
+          src="https://umami.kokorosoftware.com/script.js"
+          data-website-id="24992dcf-2877-43a6-b362-3875a091cbd9"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
