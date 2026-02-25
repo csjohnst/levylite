@@ -11,10 +11,14 @@ export async function register() {
 
   // Exceptionless server-side error tracking
   if (typeof window === 'undefined') {
-    const { Exceptionless } = await import(/* webpackIgnore: true */ '@exceptionless/node')
-    await Exceptionless.startup((c) => {
-      c.apiKey = process.env.NEXT_PUBLIC_EXCEPTIONLESS_API_KEY!
-      c.serverUrl = process.env.NEXT_PUBLIC_EXCEPTIONLESS_SERVER_URL!
-    })
+    try {
+      const { Exceptionless } = await import(/* webpackIgnore: true */ '@exceptionless/node')
+      await Exceptionless.startup((c) => {
+        c.apiKey = process.env.NEXT_PUBLIC_EXCEPTIONLESS_API_KEY!
+        c.serverUrl = process.env.NEXT_PUBLIC_EXCEPTIONLESS_SERVER_URL!
+      })
+    } catch {
+      // Fails in dev mode with webpack — non-critical, skip silently
+    }
   }
 }

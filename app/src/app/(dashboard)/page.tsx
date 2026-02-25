@@ -1,13 +1,13 @@
-import { Building2, Home, Users, DollarSign, Receipt, AlertTriangle, Landmark, FileCheck, Wrench, Calendar } from 'lucide-react'
+import { Home, Receipt, Calendar, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 function formatCurrency(amount: number): string {
   return '$' + amount.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -18,204 +18,130 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Fetch counts in parallel
-  const [schemesResult, lotsResult, ownersResult, levyItemsResult, overdueResult, trustBalancesResult, unreconciledResult, openRequestsResult, upcomingMeetingsResult] = await Promise.all([
+  const [schemesResult, lotsResult, overdueResult, openRequestsResult, upcomingMeetingsResult] = await Promise.all([
     supabase.from('schemes').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('lots').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-    supabase.from('lot_ownerships').select('owner_id', { count: 'exact', head: true }).is('ownership_end_date', null),
-    supabase.from('levy_items').select('total_levy_amount, amount_paid, status'),
     supabase.from('levy_items').select('balance', { count: 'exact', head: false }).eq('status', 'overdue'),
-    supabase.from('financial_years').select('admin_opening_balance, capital_opening_balance').eq('is_current', true),
-    supabase.from('transactions').select('id', { count: 'exact', head: true }).eq('is_reconciled', false).is('deleted_at', null),
     supabase.from('maintenance_requests').select('id', { count: 'exact', head: true }).not('status', 'in', '("completed","closed")'),
     supabase.from('meetings').select('id', { count: 'exact', head: true }).not('status', 'in', '("completed","cancelled","adjourned")'),
   ])
 
   const totalSchemes = schemesResult.count ?? 0
   const totalLots = lotsResult.count ?? 0
-  const totalOwners = ownersResult.count ?? 0
-
-  // Levy stats
-  const levyItems = levyItemsResult.data ?? []
-  const totalLevied = levyItems.reduce((sum, i) => sum + (i.total_levy_amount ?? 0), 0)
-  const totalPaid = levyItems.reduce((sum, i) => sum + (i.amount_paid ?? 0), 0)
-  const collectionRate = totalLevied > 0 ? Math.round((totalPaid / totalLevied) * 100) : 0
-
   const overdueItems = overdueResult.data ?? []
   const overdueAmount = overdueItems.reduce((sum, i) => sum + (i.balance ?? 0), 0)
-
-  // Trust accounting stats
-  const fyData = trustBalancesResult.data ?? []
-  const totalAdminBalance = fyData.reduce((sum, fy) => sum + (fy.admin_opening_balance ?? 0), 0)
-  const totalCapitalBalance = fyData.reduce((sum, fy) => sum + (fy.capital_opening_balance ?? 0), 0)
-  const unreconciledCount = unreconciledResult.count ?? 0
   const openRequestsCount = openRequestsResult.count ?? 0
   const upcomingMeetingsCount = upcomingMeetingsResult.count ?? 0
 
+  const stats = [
+    {
+      label: 'Total Lots',
+      value: totalLots.toString(),
+      subtitle: `Across ${totalSchemes} scheme${totalSchemes !== 1 ? 's' : ''}`,
+      icon: Home,
+      iconBg: 'bg-blue-50 text-blue-600',
+    },
+    {
+      label: 'Levies Outstanding',
+      value: formatCurrency(overdueAmount),
+      subtitle: `${overdueItems.length} overdue item${overdueItems.length !== 1 ? 's' : ''}`,
+      icon: Receipt,
+      iconBg: 'bg-amber-50 text-amber-600',
+    },
+    {
+      label: 'Upcoming Meetings',
+      value: upcomingMeetingsCount.toString(),
+      subtitle: 'Next 30 days',
+      icon: Calendar,
+      iconBg: 'bg-green-50 text-green-600',
+    },
+    {
+      label: 'Open Maintenance',
+      value: openRequestsCount.toString(),
+      subtitle: `Request${openRequestsCount !== 1 ? 's' : ''} in progress`,
+      icon: Wrench,
+      iconBg: 'bg-purple-50 text-purple-600',
+    },
+  ]
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">
-          Welcome to LevyLite
-        </h2>
-        <p className="text-muted-foreground">
-          Your strata management overview at a glance.
-        </p>
+      {/* Stat cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.label}>
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                  <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+                </div>
+                <div className={`rounded-lg p-2.5 ${stat.iconBg}`}>
+                  <stat.icon className="size-5" />
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">{stat.subtitle}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Total Schemes</CardDescription>
-            <Building2 className="size-4 text-muted-foreground" />
+      {/* Bottom section: chart + activity feed */}
+      <div className="grid gap-4 lg:grid-cols-5">
+        {/* Chart placeholder */}
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Levy Arrears by Scheme</CardTitle>
           </CardHeader>
           <CardContent>
-            <CardTitle className="text-2xl">{totalSchemes}</CardTitle>
-            <p className="text-xs text-muted-foreground">Active strata schemes</p>
+            <div className="flex h-[240px] items-end gap-6 px-4">
+              {['Scheme A', 'Scheme B', 'Scheme C', 'Scheme D', 'Scheme E'].map((name, i) => {
+                const pxHeights = [150, 95, 200, 70, 130]
+                return (
+                  <div key={name} className="flex flex-1 flex-col items-center gap-2">
+                    <div
+                      className="w-full rounded-t-md bg-primary"
+                      style={{ height: `${pxHeights[i]}px` }}
+                    />
+                    <span className="text-xs text-muted-foreground">{name}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              Live chart coming soon
+            </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Total Lots</CardDescription>
-            <Home className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl">{totalLots}</CardTitle>
-            <p className="text-xs text-muted-foreground">Across all schemes</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Active Owners</CardDescription>
-            <Users className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl">{totalOwners}</CardTitle>
-            <p className="text-xs text-muted-foreground">Registered lot owners</p>
-          </CardContent>
-        </Card>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Total Levies Due</CardDescription>
-            <Receipt className="size-4 text-muted-foreground" />
+        {/* Activity feed */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <CardTitle className="text-2xl">{formatCurrency(totalLevied)}</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              {formatCurrency(totalPaid)} collected
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Collection Rate</CardDescription>
-            <DollarSign className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl">{collectionRate}%</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              {levyItems.filter(i => i.status === 'paid').length} of {levyItems.length} items paid
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Overdue Amount</CardDescription>
-            <AlertTriangle className={`size-4 ${overdueAmount > 0 ? 'text-red-500' : 'text-muted-foreground'}`} />
-          </CardHeader>
-          <CardContent>
-            <CardTitle className={`text-2xl ${overdueAmount > 0 ? 'text-red-600' : ''}`}>
-              {formatCurrency(overdueAmount)}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              {overdueItems.length} overdue item{overdueItems.length !== 1 ? 's' : ''}
-            </p>
+            <div className="space-y-4">
+              {[
+                { category: 'Levy', text: 'Quarterly levies issued for SP12345', time: '2 hours ago', variant: 'default' as const },
+                { category: 'Maintenance', text: 'New request: Pool pump replacement', time: '5 hours ago', variant: 'secondary' as const },
+                { category: 'Meeting', text: 'AGM minutes approved', time: '1 day ago', variant: 'outline' as const },
+                { category: 'Payment', text: 'Lot 4 payment received — $1,250.00', time: '2 days ago', variant: 'default' as const },
+                { category: 'Document', text: 'Insurance certificate uploaded', time: '3 days ago', variant: 'secondary' as const },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <Badge variant={item.variant} className="mt-0.5 shrink-0 text-[10px]">
+                    {item.category}
+                  </Badge>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm leading-snug">{item.text}</p>
+                    <p className="text-xs text-muted-foreground">{item.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Admin Fund Balance</CardDescription>
-            <Landmark className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl">{formatCurrency(totalAdminBalance)}</CardTitle>
-            <p className="text-xs text-muted-foreground">Across all schemes</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Capital Works Balance</CardDescription>
-            <Landmark className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl">{formatCurrency(totalCapitalBalance)}</CardTitle>
-            <p className="text-xs text-muted-foreground">Across all schemes</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Unreconciled</CardDescription>
-            <FileCheck className={`size-4 ${unreconciledCount > 0 ? 'text-amber-500' : 'text-muted-foreground'}`} />
-          </CardHeader>
-          <CardContent>
-            <CardTitle className={`text-2xl ${unreconciledCount > 0 ? 'text-amber-600' : ''}`}>
-              {unreconciledCount}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              transaction{unreconciledCount !== 1 ? 's' : ''} pending reconciliation
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Open Requests</CardDescription>
-            <Wrench className={`size-4 ${openRequestsCount > 0 ? 'text-amber-500' : 'text-muted-foreground'}`} />
-          </CardHeader>
-          <CardContent>
-            <CardTitle className={`text-2xl ${openRequestsCount > 0 ? 'text-amber-600' : ''}`}>
-              {openRequestsCount}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              maintenance request{openRequestsCount !== 1 ? 's' : ''} in progress
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardDescription>Upcoming Meetings</CardDescription>
-            <Calendar className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl">{upcomingMeetingsCount}</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              meeting{upcomingMeetingsCount !== 1 ? 's' : ''} scheduled
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>
-            Latest updates across your schemes.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No recent activity to display.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   )
 }

@@ -45,7 +45,7 @@ export default async function DashboardLayout({
         schemes={schemes ?? []}
       />
       <SidebarInset>
-        <DashboardHeader />
+        <DashboardHeader user={user} />
         <div className="px-4 pt-4 md:px-6 md:pt-6">
           <TrialBanner />
         </div>
