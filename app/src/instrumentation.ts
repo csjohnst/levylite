@@ -8,4 +8,13 @@ export async function register() {
     // @ts-expect-error — intentionally removing broken Node.js built-in
     delete globalThis.localStorage
   }
+
+  // Exceptionless server-side error tracking
+  if (typeof window === 'undefined') {
+    const { Exceptionless } = await import(/* webpackIgnore: true */ '@exceptionless/node')
+    await Exceptionless.startup((c) => {
+      c.apiKey = process.env.NEXT_PUBLIC_EXCEPTIONLESS_API_KEY!
+      c.serverUrl = process.env.NEXT_PUBLIC_EXCEPTIONLESS_SERVER_URL!
+    })
+  }
 }
