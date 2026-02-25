@@ -186,49 +186,14 @@ export default function Home() {
             Graduated pricing — the more you manage, the less you pay per lot. No cliffs, no surprises.
           </p>
           
-          {/* Pricing tiers */}
-          <div className="max-w-3xl mx-auto mb-12">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-[#02667F]/10">
-              <div className="grid grid-cols-3 bg-[#02667F] text-white text-center font-bold">
-                <div className="p-4">Lots</div>
-                <div className="p-4">Rate <span className="text-xs font-normal opacity-80">(ex GST)</span></div>
-                <div className="p-4">Example</div>
-              </div>
-              <div className="grid grid-cols-3 text-center border-b border-gray-100">
-                <div className="p-4 font-medium text-[#3A3A3A]">First 10 lots</div>
-                <div className="p-4 text-[#02667F] font-bold text-xl">Free</div>
-                <div className="p-4 text-[#3A3A3A]/70">$0/mo</div>
-              </div>
-              <div className="grid grid-cols-3 text-center border-b border-gray-100 bg-[#F6F8FA]">
-                <div className="p-4 font-medium text-[#3A3A3A]">Lots 11–100</div>
-                <div className="p-4 text-[#02667F] font-bold text-xl">$2.50<span className="text-sm font-normal">/lot/mo</span></div>
-                <div className="p-4 text-[#3A3A3A]/70">50 lots = $100/mo</div>
-              </div>
-              <div className="grid grid-cols-3 text-center border-b border-gray-100">
-                <div className="p-4 font-medium text-[#3A3A3A]">Lots 101–500</div>
-                <div className="p-4 text-[#02667F] font-bold text-xl">$1.50<span className="text-sm font-normal">/lot/mo</span></div>
-                <div className="p-4 text-[#3A3A3A]/70">300 lots = $525/mo</div>
-              </div>
-              <div className="grid grid-cols-3 text-center border-b border-gray-100 bg-[#F6F8FA]">
-                <div className="p-4 font-medium text-[#3A3A3A]">Lots 501–2,000</div>
-                <div className="p-4 text-[#02667F] font-bold text-xl">$1<span className="text-sm font-normal">/lot/mo</span></div>
-                <div className="p-4 text-[#3A3A3A]/70">1,000 lots = $975/mo</div>
-              </div>
-              <div className="grid grid-cols-3 text-center">
-                <div className="p-4 font-medium text-[#3A3A3A]">Lots 2,001+</div>
-                <div className="p-4 text-[#02667F] font-bold text-xl">$0.75<span className="text-sm font-normal">/lot/mo</span></div>
-                <div className="p-4 text-[#3A3A3A]/70">—</div>
-              </div>
-            </div>
-            <p className="text-center text-sm text-[#3A3A3A]/60 mt-4">
-              Graduated pricing — example bills: 50 lots = $100/mo · 100 lots = $225/mo · 300 lots = $525/mo · 1,000 lots = $975/mo
-            </p>
-          </div>
-
-          {/* What's included */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Plan cards */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
             <Card className="p-6 border-2 border-[#02667F]/20">
-              <h3 className="text-xl font-bold mb-4 text-[#3A3A3A]">Free tier (up to 10 lots)</h3>
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-[#3A3A3A]">Free</h3>
+                <p className="text-3xl font-bold text-[#02667F] mt-2">$0<span className="text-base font-normal text-[#3A3A3A]/60">/mo</span></p>
+                <p className="text-sm text-[#3A3A3A]/60 mt-1">Up to 10 lots</p>
+              </div>
               <ul className="text-sm text-[#3A3A3A]/70 space-y-2">
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> 14-day trial of all features</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Scheme &amp; lot register</li>
@@ -242,9 +207,13 @@ export default function Home() {
               </ul>
             </Card>
             <Card className="p-6 border-2 border-[#0090B7] shadow-lg">
-              <h3 className="text-xl font-bold mb-4 text-[#3A3A3A]">Paid (11+ lots) — everything included</h3>
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-[#3A3A3A]">Paid</h3>
+                <p className="text-3xl font-bold text-[#02667F] mt-2">From $2.50<span className="text-base font-normal text-[#3A3A3A]/60">/lot/mo</span></p>
+                <p className="text-sm text-[#3A3A3A]/60 mt-1">All features, unlimited lots</p>
+              </div>
               <ul className="text-sm text-[#3A3A3A]/70 space-y-2">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> All free tier features</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Everything in Free</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Trust accounting &amp; audit trails</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Bulk levy notices &amp; reminders</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Financial reporting &amp; budgets</li>
@@ -254,6 +223,41 @@ export default function Home() {
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Email support</li>
               </ul>
             </Card>
+          </div>
+
+          {/* Graduated pricing table — paid plan */}
+          <div className="max-w-3xl mx-auto">
+            <h3 className="text-lg font-semibold text-center text-[#3A3A3A] mb-4">Paid plan — graduated pricing</h3>
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-[#02667F]/10">
+              <div className="grid grid-cols-3 bg-[#02667F] text-white text-center font-bold">
+                <div className="p-4">Lots</div>
+                <div className="p-4">Rate <span className="text-xs font-normal opacity-80">(ex GST)</span></div>
+                <div className="p-4">Example</div>
+              </div>
+              <div className="grid grid-cols-3 text-center border-b border-gray-100">
+                <div className="p-4 font-medium text-[#3A3A3A]">First 100 lots</div>
+                <div className="p-4 text-[#02667F] font-bold text-xl">$2.50<span className="text-sm font-normal">/lot/mo</span></div>
+                <div className="p-4 text-[#3A3A3A]/70">50 lots = $125/mo</div>
+              </div>
+              <div className="grid grid-cols-3 text-center border-b border-gray-100 bg-[#F6F8FA]">
+                <div className="p-4 font-medium text-[#3A3A3A]">Lots 101–500</div>
+                <div className="p-4 text-[#02667F] font-bold text-xl">$1.50<span className="text-sm font-normal">/lot/mo</span></div>
+                <div className="p-4 text-[#3A3A3A]/70">300 lots = $550/mo</div>
+              </div>
+              <div className="grid grid-cols-3 text-center border-b border-gray-100">
+                <div className="p-4 font-medium text-[#3A3A3A]">Lots 501–2,000</div>
+                <div className="p-4 text-[#02667F] font-bold text-xl">$1<span className="text-sm font-normal">/lot/mo</span></div>
+                <div className="p-4 text-[#3A3A3A]/70">1,000 lots = $1,350/mo</div>
+              </div>
+              <div className="grid grid-cols-3 text-center">
+                <div className="p-4 font-medium text-[#3A3A3A]">Lots 2,001+</div>
+                <div className="p-4 text-[#02667F] font-bold text-xl">$0.75<span className="text-sm font-normal">/lot/mo</span></div>
+                <div className="p-4 text-[#3A3A3A]/70">—</div>
+              </div>
+            </div>
+            <p className="text-center text-sm text-[#3A3A3A]/60 mt-4">
+              The more you manage, the less you pay — 50 lots = $125/mo · 100 lots = $250/mo · 300 lots = $550/mo · 1,000 lots = $1,350/mo
+            </p>
           </div>
           <p className="text-center text-sm text-[#3A3A3A]/60 mt-8">
             Save 2 months with annual billing. All prices in AUD, ex GST.
