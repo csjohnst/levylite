@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { SignupForm } from "@/components/signup-form";
 import { 
@@ -9,7 +10,8 @@ import {
   Calculator, 
   Smartphone,
   Check,
-  X
+  X,
+  BookOpen
 } from "lucide-react";
 
 export default function Home() {
@@ -17,6 +19,18 @@ export default function Home() {
     <div className="min-h-screen bg-[#F6F8FA]">
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-[#02667F] to-[#0090B7] text-white py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Navigation */}
+          <nav className="flex justify-end mb-8">
+            <Link 
+              href="/blog" 
+              className="inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors px-4 py-2 rounded-lg hover:bg-white/10"
+            >
+              <BookOpen className="w-5 h-5" />
+              <span className="font-semibold">Blog & Guides</span>
+            </Link>
+          </nav>
+        </div>
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
             <Image 
