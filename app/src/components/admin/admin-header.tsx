@@ -1,0 +1,99 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import type { User } from '@supabase/supabase-js'
+
+const pageTitles: Record<string, string> = {
+  '/admin': 'Platform Dashboard',
+  '/admin/organisations': 'Organisations',
+  '/admin/users': 'Users',
+  '/admin/subscriptions': 'Subscriptions',
+}
+
+function getPageTitle(pathname: string): string {
+  if (pageTitles[pathname]) return pageTitles[pathname]
+
+  if (pathname.match(/^\/admin\/organisations\/[^/]+$/))
+    return 'Organisation Details'
+
+  return 'Platform Admin'
+}
+
+function getUserInitials(user: User): string {
+  const meta = user.user_metadata
+  if (meta?.first_name && meta?.last_name) {
+    return `${meta.first_name[0]}${meta.last_name[0]}`.toUpperCase()
+  }
+  if (meta?.full_name) {
+    const parts = meta.full_name.split(' ')
+    return parts.length >= 2
+      ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+      : parts[0][0].toUpperCase()
+  }
+  if (user.email) return user.email[0].toUpperCase()
+  return 'U'
+}
+
+function getUserDisplayName(user: User): string {
+  const meta = user.user_metadata
+  if (meta?.full_name) return meta.full_name
+  if (meta?.first_name) {
+    return meta.last_name
+      ? `${meta.first_name} ${meta.last_name}`
+      : meta.first_name
+  }
+  return user.email ?? 'User'
+}
+
+interface AdminHeaderProps {
+  user: User
+  adminRole: string
+}
+
+export function AdminHeader({ user, adminRole }: AdminHeaderProps) {
+  const pathname = usePathname()
+  const title = getPageTitle(pathname)
+  const isDashboard = pathname === '/admin'
+
+  const roleLabel =
+    adminRole === 'super_admin'
+      ? 'Super Admin'
+      : adminRole === 'admin'
+        ? 'Admin'
+        : 'Support'
+
+  return (
+    <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:px-6">
+      <div className="flex items-center gap-3">
+        <SidebarTrigger className="-ml-1" />
+        <div>
+          <h1 className="text-lg font-semibold leading-tight">{title}</h1>
+          {isDashboard && (
+            <p className="text-sm text-muted-foreground">
+              Platform overview and management.
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <Badge variant="outline" className="hidden sm:inline-flex">
+          {roleLabel}
+        </Badge>
+        <div className="text-right hidden sm:block">
+          <p className="text-sm font-medium leading-tight">
+            {getUserDisplayName(user)}
+          </p>
+          <p className="text-xs text-muted-foreground">{user.email}</p>
+        </div>
+        <Avatar>
+          <AvatarFallback className="bg-red-600 text-white text-sm">
+            {getUserInitials(user)}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+    </header>
+  )
+}

@@ -78,6 +78,23 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // For authenticated admin routes, verify the user is a platform admin
+  const isAdminRoute = pathname.startsWith('/admin')
+  if (user && isAdminRoute) {
+    const { data: adminRecord } = await supabase
+      .from('platform_admins')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle()
+
+    if (!adminRecord) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+  }
+
   // For authenticated owner portal routes (except public ones), verify the user is an owner
   if (user && isOwnerRoute && !isPublicRoute) {
     const { data: ownerRecord } = await supabase

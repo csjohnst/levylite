@@ -21,6 +21,18 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser()
 
       if (user) {
+        // Check platform admin first (highest priority)
+        const { data: adminRecord } = await supabase
+          .from('platform_admins')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .maybeSingle()
+
+        if (adminRecord) {
+          return NextResponse.redirect(`${origin}/admin`)
+        }
+
         // Check if user is a staff member (organisation_users)
         const { data: orgUser } = await supabase
           .from('organisation_users')
