@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Home, Receipt, Calendar, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
@@ -133,6 +134,7 @@ export default async function DashboardPage() {
       subtitle: `Across ${totalSchemes} scheme${totalSchemes !== 1 ? 's' : ''}`,
       icon: Home,
       iconBg: 'bg-blue-50 text-blue-600',
+      href: '/schemes',
     },
     {
       label: 'Levies Outstanding',
@@ -140,6 +142,7 @@ export default async function DashboardPage() {
       subtitle: `${overdueItems.length} overdue item${overdueItems.length !== 1 ? 's' : ''}`,
       icon: Receipt,
       iconBg: 'bg-amber-50 text-amber-600',
+      href: '/levies',
     },
     {
       label: 'Upcoming Meetings',
@@ -147,6 +150,7 @@ export default async function DashboardPage() {
       subtitle: 'Next 30 days',
       icon: Calendar,
       iconBg: 'bg-green-50 text-green-600',
+      href: '/meetings',
     },
     {
       label: 'Open Maintenance',
@@ -154,6 +158,7 @@ export default async function DashboardPage() {
       subtitle: `Request${openRequestsCount !== 1 ? 's' : ''} in progress`,
       icon: Wrench,
       iconBg: 'bg-purple-50 text-purple-600',
+      href: '/maintenance',
     },
   ]
 
@@ -162,20 +167,22 @@ export default async function DashboardPage() {
       {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                  <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+          <Link key={stat.label} href={stat.href} className="block transition-shadow hover:shadow-md rounded-xl">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                    <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+                  </div>
+                  <div className={`rounded-lg p-2.5 ${stat.iconBg}`}>
+                    <stat.icon className="size-5" />
+                  </div>
                 </div>
-                <div className={`rounded-lg p-2.5 ${stat.iconBg}`}>
-                  <stat.icon className="size-5" />
-                </div>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">{stat.subtitle}</p>
-            </CardContent>
-          </Card>
+                <p className="mt-2 text-xs text-muted-foreground">{stat.subtitle}</p>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
