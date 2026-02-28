@@ -38,5 +38,5 @@ ALTER TABLE public.subscriptions ADD CONSTRAINT valid_subscription_status CHECK 
 -- Seed Chris as super_admin
 INSERT INTO public.platform_admins (user_id, role)
 SELECT id, 'super_admin' FROM auth.users
-WHERE email = 'chris@stratus-consulting.com.au'
+WHERE email = 'chris@johnstone.id.au'
 ON CONFLICT (user_id) DO NOTHING;
