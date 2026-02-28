@@ -223,7 +223,7 @@ export default async function DashboardPage() {
               <div className="space-y-4">
                 {recentActivity.map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <Badge variant={item.variant} className="mt-0.5 shrink-0 text-[10px]">
+                    <Badge variant={item.variant} className="mt-0.5 w-[90px] justify-center shrink-0 text-[10px]">
                       {item.category}
                     </Badge>
                     <div className="min-w-0 flex-1">
