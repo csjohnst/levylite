@@ -294,6 +294,7 @@ export default function Home() {
               <p className="text-white/60 text-sm">The Heart of Things</p>
             </div>
             <div className="flex gap-6 text-sm">
+              <a href="/blog" className="text-white/80 hover:text-white">Blog</a>
               <a href="#" className="text-white/80 hover:text-white">Privacy</a>
               <a href="#" className="text-white/80 hover:text-white">Terms</a>
               <a href="mailto:chris@kokorosoftware.com" className="text-white/80 hover:text-white">Contact</a>
