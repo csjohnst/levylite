@@ -43,7 +43,7 @@ export default function StrataManagerDuties() {
           </div>
         </header>
 
-        <div className="prose prose-lg max-w-none">
+        <div className="prose prose-lg max-w-none prose-headings:text-[#3A3A3A] prose-a:text-[#02667F]">
           <p className="lead">
             Strata managers charge $2,000–$8,000+ per year. For small schemes, that's often 40% of the total administrative budget. But what do they actually <em>do</em> all day? And how much of it can software realistically handle?
           </p>

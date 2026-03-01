@@ -43,7 +43,7 @@ export default function StrataCostsWA() {
           </div>
         </header>
 
-        <div className="prose prose-lg max-w-none">
+        <div className="prose prose-lg max-w-none prose-headings:text-[#3A3A3A] prose-a:text-[#02667F]">
           <p className="lead">
             Strata management fees in Western Australia typically range from $2,000 to $8,000+ per year—depending on your scheme's size and complexity. For a 10-lot scheme, that's often 30-50% of your entire administrative budget.
           </p>

@@ -43,7 +43,7 @@ export default function SelfManageStrataWA() {
           </div>
         </header>
 
-        <div className="prose prose-lg max-w-none">
+        <div className="prose prose-lg max-w-none prose-headings:text-[#3A3A3A] prose-a:text-[#02667F]">
           <p className="lead">
             Self-managing a strata scheme in Western Australia is entirely legal—and increasingly common. For small schemes (under 20 lots), it can save thousands of dollars per year. But it's not for everyone, and it comes with real responsibilities.
           </p>
