@@ -145,3 +145,82 @@ export interface Tenant {
   createdAt: string
   updatedAt: string
 }
+
+// =============================================
+// Feedback System Types
+// =============================================
+
+export interface FeedbackCategory {
+  id: string
+  name: string
+  description: string | null
+  color: string | null
+  icon: string | null
+  sortOrder: number
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type FeedbackStatus = 'new' | 'reviewed' | 'in_progress' | 'resolved' | 'archived'
+export type FeedbackSentiment = 'positive' | 'neutral' | 'negative'
+
+export interface Feedback {
+  id: string
+  userFingerprint: string
+  sessionId: string | null
+  categoryId: string | null
+  message: string
+  sentiment: FeedbackSentiment | null
+  pageUrl: string
+  pageTitle: string | null
+  userAgent: string | null
+  viewportWidth: number | null
+  viewportHeight: number | null
+  contactEmail: string | null
+  allowContact: boolean
+  status: FeedbackStatus
+  adminNotes: string | null
+  assignedTo: string | null
+  resolvedAt: string | null
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  category?: FeedbackCategory
+  attachments?: FeedbackAttachment[]
+}
+
+export interface FeedbackAttachment {
+  id: string
+  feedbackId: string
+  storagePath: string
+  fileName: string
+  fileSize: number
+  mimeType: 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif'
+  width: number | null
+  height: number | null
+  createdAt: string
+  deletedAt: string | null
+}
+
+export interface SubmitFeedbackRequest {
+  message: string
+  pageUrl: string
+  userFingerprint: string
+  categoryId?: string
+  sentiment?: FeedbackSentiment
+  pageTitle?: string
+  sessionId?: string
+  contactEmail?: string
+  allowContact?: boolean
+  userAgent?: string
+  viewportWidth?: number
+  viewportHeight?: number
+  screenshot?: string
+}
+
+export interface SubmitFeedbackResponse {
+  success: boolean
+  feedbackId: string
+  message: string
+}
