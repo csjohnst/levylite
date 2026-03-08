@@ -145,3 +145,37 @@ export interface Tenant {
   createdAt: string
   updatedAt: string
 }
+
+export interface InsurancePolicy {
+  id: string
+  schemeId: string
+  policyType: 'building' | 'public_liability' | 'office_bearers' | 'fidelity' | 'workers_comp' | 'other'
+  policyNumber: string | null
+  insurer: string
+  broker: string | null
+  premiumAmount: number
+  sumInsured: number | null
+  policyStartDate: string
+  policyEndDate: string
+  renewalDate: string
+  lastValuationDate: string | null
+  lastValuationAmount: number | null
+  valuerName: string | null
+  valuerCompany: string | null
+  valuationNotes: string | null
+  notes: string | null
+  attachmentUrl: string | null
+  status: 'active' | 'expired' | 'cancelled'
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UpcomingInsuranceRenewal {
+  policyId: string
+  policyType: string
+  insurer: string
+  renewalDate: string
+  daysUntilRenewal: number
+  premiumAmount: number
+  valuationOutdated: boolean
+}
