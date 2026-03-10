@@ -298,6 +298,23 @@ export default async function SchemeDetailPage({
                 </CardContent>
               </Card>
             )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Insurance & Valuations</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Manage insurance policies and track property valuations
+                </p>
+                <Button asChild variant="outline" size="sm" className="w-full">
+                  <Link href={`/schemes/${id}/insurance`}>
+                    View Insurance
+                    <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 

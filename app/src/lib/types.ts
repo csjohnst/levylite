@@ -224,3 +224,73 @@ export interface SubmitFeedbackResponse {
   feedbackId: string
   message: string
 }
+
+// =============================================
+// Insurance Tracking Types
+// =============================================
+
+export type InsurancePolicyType = 'building' | 'public_liability' | 'office_bearers' | 'fidelity' | 'workers_comp' | 'other'
+export type InsurancePolicyStatus = 'active' | 'expired' | 'cancelled' | 'pending_renewal'
+export type ValuationType = 'insurance' | 'market' | 'depreciated_replacement'
+export type InsuranceAlertStatus = 'expired' | 'expiring_soon' | 'renewal_due' | 'ok'
+
+export interface InsurancePolicy {
+  id: string
+  schemeId: string
+  policyType: InsurancePolicyType
+  policyNumber: string
+  insurerName: string
+  brokerName: string | null
+  premiumAmount: number
+  sumInsured: number | null
+  excessAmount: number | null
+  effectiveDate: string
+  expiryDate: string
+  renewalNoticeSentAt: string | null
+  coverageNotes: string | null
+  specialConditions: string | null
+  status: InsurancePolicyStatus
+  createdAt: string
+  createdBy: string | null
+  updatedAt: string
+  updatedBy: string | null
+}
+
+export interface PropertyValuation {
+  id: string
+  schemeId: string
+  valuationDate: string
+  valuationAmount: number
+  valuationType: ValuationType
+  valuerName: string
+  valuerCompany: string | null
+  valuerRegistrationNumber: string | null
+  reportReference: string | null
+  reportFilePath: string | null
+  notes: string | null
+  methodology: string | null
+  createdAt: string
+  createdBy: string | null
+  updatedAt: string
+  updatedBy: string | null
+}
+
+export interface LatestPropertyValuation {
+  id: string
+  schemeId: string
+  valuationDate: string
+  valuationAmount: number
+  valuationType: ValuationType
+  valuerName: string
+  valuerCompany: string | null
+  createdAt: string
+  isOutdated: boolean
+}
+
+export interface InsurancePolicyWithAlerts extends InsurancePolicy {
+  latestValuationDate: string | null
+  latestValuationAmount: number | null
+  valuationIsOutdated: boolean | null
+  daysUntilExpiry: number
+  alertStatus: InsuranceAlertStatus
+}
