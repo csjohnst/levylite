@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ExceptionlessProvider } from "@/components/exceptionless-provider";
+import { FeedbackWidget } from "@/components/feedback-widget";
 
 export const metadata: Metadata = {
   title: "LevyLite",
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body>
         {children}
         <Toaster />
+        <FeedbackWidget />
         <ExceptionlessProvider />
         <Script
           src="https://umami.kokorosoftware.com/script.js"
