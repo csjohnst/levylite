@@ -63,21 +63,19 @@ export default function OwnerLoginPage() {
       },
     })
 
+    // F14: Use generic message for both success and "signups not allowed" error
+    // to prevent account enumeration. Only show specific message for rate limits.
     if (error) {
-      if (error.message.includes('Signups not allowed')) {
-        setError(
-          'No account found for this email address. Please contact your strata manager.'
-        )
-      } else if (error.message.includes('rate limit')) {
+      if (error.message.includes('rate limit')) {
         setError(
           'Too many login attempts. Please try again in a few minutes.'
         )
-      } else {
-        setError(error.message)
+        setMagicLinkLoading(false)
+        return
       }
-    } else {
-      setMagicLinkSent(true)
+      // For "signups not allowed" or other errors, show generic success message
     }
+    setMagicLinkSent(true)
     setMagicLinkLoading(false)
   }
 
@@ -87,8 +85,8 @@ export default function OwnerLoginPage() {
         <CardHeader>
           <CardTitle>Check your email</CardTitle>
           <CardDescription>
-            We sent a login link to <strong>{email}</strong>. Click the link in
-            the email to sign in to the owner portal.
+            If this email is associated with an account, a login link has been sent
+            to <strong>{email}</strong>.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -165,6 +166,18 @@ export async function updateOwner(ownerId: string, data: OwnerFormData) {
   if ('error' in result && !('supabase' in result)) return { error: result.error }
   const { supabase, user } = result as Exclude<typeof result, { error: string }>
 
+  // Check if this owner has an active portal account and if the email is changing
+  const { data: existingOwner } = await supabase
+    .from('owners')
+    .select('email, portal_user_id')
+    .eq('id', ownerId)
+    .single()
+
+  const emailChanging = existingOwner &&
+    existingOwner.portal_user_id &&
+    parsed.data.email &&
+    existingOwner.email !== parsed.data.email
+
   const { data: owner, error } = await supabase
     .from('owners')
     .update({
@@ -176,6 +189,27 @@ export async function updateOwner(ownerId: string, data: OwnerFormData) {
     .single()
 
   if (error) return { error: error.message }
+
+  // If this owner has an active portal and the email changed, sync to auth.users
+  if (emailChanging && existingOwner.portal_user_id && parsed.data.email) {
+    try {
+      const adminSupabase = createAdminClient()
+      const { error: authUpdateError } = await adminSupabase.auth.admin.updateUserById(
+        existingOwner.portal_user_id,
+        { email: parsed.data.email, email_confirm: true }
+      )
+      if (authUpdateError) {
+        console.error('[owners] Failed to sync email to auth.users:', authUpdateError.message)
+        // Don't fail the overall operation, but warn the user
+        return {
+          data: owner,
+          warning: `Owner updated but portal email sync failed: ${authUpdateError.message}. The owner may need a new portal invitation.`,
+        }
+      }
+    } catch (err) {
+      console.error('[owners] Error syncing portal email:', err)
+    }
+  }
 
   // Revalidate scheme pages for lots this owner is assigned to
   const { data: ownerships } = await supabase

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/client'
+import { PASSWORD_MIN_LENGTH, PASSWORD_HINT } from '@/lib/password-validation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,7 +22,12 @@ const signupSchema = z
     fullName: z.string().min(1, 'Full name is required'),
     email: z.email('Please enter a valid email address'),
     organisationName: z.string().min(1, 'Organisation name is required'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: z
+      .string()
+      .min(PASSWORD_MIN_LENGTH, `Password must be at least ${PASSWORD_MIN_LENGTH} characters`)
+      .refine((p) => /[A-Z]/.test(p), 'Password must contain at least one uppercase letter')
+      .refine((p) => /[a-z]/.test(p), 'Password must contain at least one lowercase letter')
+      .refine((p) => /[0-9]/.test(p), 'Password must contain at least one digit'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -178,7 +184,7 @@ export default function SignupPage() {
             <Input
               id="password"
               type="password"
-              placeholder="Minimum 8 characters"
+              placeholder={PASSWORD_HINT}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

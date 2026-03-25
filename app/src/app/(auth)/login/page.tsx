@@ -33,18 +33,26 @@ export default function LoginPage() {
     setError(null)
     setMagicLinkLoading(true)
 
+    // F15: Prevent magic link from creating new accounts
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
+        shouldCreateUser: false,
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
 
+    // F15: Use generic message for both success and "signups not allowed" error
+    // to prevent account enumeration. Only show specific message for rate limits.
     if (error) {
-      setError(error.message)
-    } else {
-      setMagicLinkSent(true)
+      if (error.message.includes('rate limit')) {
+        setError('Too many login attempts. Please try again in a few minutes.')
+        setMagicLinkLoading(false)
+        return
+      }
+      // For "signups not allowed" or other errors, show generic success message
     }
+    setMagicLinkSent(true)
     setMagicLinkLoading(false)
   }
 
@@ -73,8 +81,8 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle>Check your email</CardTitle>
           <CardDescription>
-            We sent a login link to <strong>{email}</strong>. Click the link in
-            the email to sign in.
+            If this email is associated with an account, a login link has been sent
+            to <strong>{email}</strong>.
           </CardDescription>
         </CardHeader>
         <CardFooter>

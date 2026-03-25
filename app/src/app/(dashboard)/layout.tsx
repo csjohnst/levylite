@@ -24,6 +24,8 @@ export default async function DashboardLayout({
     .eq('user_id', user.id)
     .single()
 
+  if (!orgUser) redirect('/login')
+
   // Fetch schemes for this org
   const { data: schemes } = await supabase
     .from('schemes')

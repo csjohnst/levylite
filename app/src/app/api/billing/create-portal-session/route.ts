@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
+import { validateRequestOrigin } from '@/lib/validate-origin'
 
 export async function POST(request: Request) {
   try {
+    const originCheck = validateRequestOrigin(request)
+    if (!originCheck.valid) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -38,10 +43,13 @@ export async function POST(request: Request) {
       )
     }
 
-    const origin = request.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? ''
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL
+    if (!appUrl) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
     const portalSession = await getStripe().billingPortal.sessions.create({
       customer: subscription.stripe_customer_id,
-      return_url: `${origin}/settings/billing`,
+      return_url: `${appUrl}/settings/billing`,
     })
 
     return NextResponse.json({ portalUrl: portalSession.url })

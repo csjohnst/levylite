@@ -22,16 +22,16 @@ export function buildLevyNoticeEmailHtml(data: LevyNoticeEmailData): string {
     data.bsb || data.accountNumber
       ? `
     <p><strong>Payment Details:</strong><br>
-    ${data.bsb ? `BSB: ${data.bsb}<br>` : ''}
-    ${data.accountNumber ? `Account: ${data.accountNumber}<br>` : ''}
-    ${data.accountName ? `Account Name: ${data.accountName}<br>` : ''}
-    Reference: <strong>${data.paymentReference}</strong></p>
+    ${data.bsb ? `BSB: ${escapeHtml(data.bsb)}<br>` : ''}
+    ${data.accountNumber ? `Account: ${escapeHtml(data.accountNumber)}<br>` : ''}
+    ${data.accountName ? `Account Name: ${escapeHtml(data.accountName)}<br>` : ''}
+    Reference: <strong>${escapeHtml(data.paymentReference)}</strong></p>
     `
       : ''
 
   const contactParts: string[] = []
-  if (data.managerEmail) contactParts.push(data.managerEmail)
-  if (data.managerPhone) contactParts.push(data.managerPhone)
+  if (data.managerEmail) contactParts.push(escapeHtml(data.managerEmail))
+  if (data.managerPhone) contactParts.push(escapeHtml(data.managerPhone))
   const contactLine = contactParts.length > 0 ? ` at ${contactParts.join(' or ')}` : ''
 
   return `<!DOCTYPE html>
@@ -70,6 +70,12 @@ export function buildLevyNoticeEmailHtml(data: LevyNoticeEmailData): string {
       </div>
 
       ${paymentDetailsHtml}
+
+      ${data.bsb || data.accountNumber ? `
+      <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 13px;">
+        <strong style="color: #856404;">Important:</strong> Always verify bank details on your owner portal before making payments. If the bank details in this notice differ from what you see on the portal, contact your strata manager immediately.
+      </div>
+      ` : ''}
 
       <p>Please find attached your detailed levy notice (PDF).</p>
 
@@ -112,6 +118,8 @@ Due Date: ${data.dueDate}
 
 Payment Details:
 ${paymentLines.join('\n')}
+
+IMPORTANT: Always verify bank details on your owner portal before making payments. If the bank details in this notice differ from what you see on the portal, contact your strata manager immediately.
 
 Please find attached your detailed levy notice (PDF).
 

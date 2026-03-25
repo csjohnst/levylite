@@ -27,6 +27,7 @@ import { CommitteeTab } from '@/components/schemes/committee-tab'
 import { getFundBalanceSummary } from '@/actions/reports'
 import { checkOpeningBalancesStatus } from '@/actions/opening-balances'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { BankDetailChangePanel } from '@/components/schemes/bank-detail-change-panel'
 
 export default async function SchemeDetailPage({
   params,
@@ -538,6 +539,16 @@ export default async function SchemeDetailPage({
               </CardContent>
             </Card>
           </div>
+
+          <Separator />
+
+          <BankDetailChangePanel
+            schemeId={id}
+            currentBsb={scheme.trust_bsb}
+            currentAccountNumber={scheme.trust_account_number}
+            currentAccountName={scheme.trust_account_name}
+            currentUserId={user.id}
+          />
         </TabsContent>
 
         <TabsContent value="maintenance" className="space-y-4">

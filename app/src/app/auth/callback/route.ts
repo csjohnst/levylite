@@ -4,7 +4,19 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  const rawNext = searchParams.get('next') ?? '/'
+
+  // F4: Validate the `next` parameter to prevent open redirect
+  // Use URL parsing to ensure the resolved URL stays on the same origin
+  let next = '/'
+  try {
+    const resolved = new URL(rawNext, origin)
+    if (resolved.origin === origin && rawNext.startsWith('/') && !rawNext.startsWith('//')) {
+      next = rawNext
+    }
+  } catch {
+    // Invalid URL — fall through to default '/'
+  }
 
   if (code) {
     const supabase = await createClient()

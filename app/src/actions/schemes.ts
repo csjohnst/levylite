@@ -108,10 +108,34 @@ export async function updateScheme(id: string, data: SchemeFormData) {
   if ('error' in result && !('supabase' in result)) return { error: result.error }
   const { supabase, user } = result as Exclude<typeof result, { error: string }>
 
+  // Fetch current scheme to check if bank details are being changed
+  const { data: currentScheme } = await supabase
+    .from('schemes')
+    .select('trust_bsb, trust_account_number, trust_account_name')
+    .eq('id', id)
+    .single()
+
+  if (currentScheme) {
+    const bankDetailsChanging =
+      (parsed.data.trust_bsb ?? null) !== (currentScheme.trust_bsb ?? null) ||
+      (parsed.data.trust_account_number ?? null) !== (currentScheme.trust_account_number ?? null) ||
+      (parsed.data.trust_account_name ?? null) !== (currentScheme.trust_account_name ?? null)
+
+    if (bankDetailsChanging) {
+      return {
+        error: 'Trust account bank details cannot be changed directly. For security, bank detail changes require a separate request and approval from a different manager. Please use the "Request Bank Detail Change" option on the Trust tab.',
+      }
+    }
+  }
+
+  // Strip trust fields from the update to be safe (in case the trigger also catches it)
+  const { trust_bsb: _bsb, trust_account_number: _acn, trust_account_name: _aname, ...safeData } = parsed.data
+
   const { data: scheme, error } = await supabase
     .from('schemes')
     .update({
-      ...parsed.data,
+      ...safeData,
+      // Preserve existing bank details by not including them in the update
       updated_by: user.id,
     })
     .eq('id', id)

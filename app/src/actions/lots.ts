@@ -177,8 +177,18 @@ export async function importLotsFromCSV(schemeId: string, csvText: string) {
   if ('error' in result && !('supabase' in result)) return { error: result.error }
   const { supabase, user } = result as Exclude<typeof result, { error: string }>
 
+  // Size check: reject if CSV text exceeds 1MB
+  if (new TextEncoder().encode(csvText).length > 1_048_576) {
+    return { error: 'CSV file exceeds 1MB size limit' }
+  }
+
   const { headers, rows } = parseCSV(csvText)
   if (headers.length === 0) return { error: 'CSV file is empty or has no headers' }
+
+  // Row count limit
+  if (rows.length > 5000) {
+    return { error: 'CSV file exceeds 5,000 row limit' }
+  }
 
   const lotNumberIdx = headers.indexOf('lot_number')
   const unitEntitlementIdx = headers.indexOf('unit_entitlement')
@@ -203,8 +213,39 @@ export async function importLotsFromCSV(schemeId: string, csvText: string) {
       errors.push({ row: i + 2, message: 'lot_number is required' })
       continue
     }
+    if (lotNumber.length > 50) {
+      errors.push({ row: i + 2, message: 'lot_number exceeds 50 character limit' })
+      continue
+    }
     if (!unitEntitlement || isNaN(Number(unitEntitlement)) || Number(unitEntitlement) <= 0) {
       errors.push({ row: i + 2, message: 'unit_entitlement must be a non-negative number (0 is valid for Common Property)' })
+      continue
+    }
+
+    // Field length validation
+    const _unitNumber = getValue('unit_number')
+    if (_unitNumber && _unitNumber.length > 50) {
+      errors.push({ row: i + 2, message: 'unit_number exceeds 50 character limit' })
+      continue
+    }
+    const _notes = getValue('notes')
+    if (_notes && _notes.length > 500) {
+      errors.push({ row: i + 2, message: 'notes exceeds 500 character limit' })
+      continue
+    }
+    const _ownerFirst = getValue('owner_first_name')
+    const _ownerLast = getValue('owner_last_name')
+    if (_ownerFirst && _ownerFirst.length > 200) {
+      errors.push({ row: i + 2, message: 'owner_first_name exceeds 200 character limit' })
+      continue
+    }
+    if (_ownerLast && _ownerLast.length > 200) {
+      errors.push({ row: i + 2, message: 'owner_last_name exceeds 200 character limit' })
+      continue
+    }
+    const _ownerEmail = getValue('owner_email')
+    if (_ownerEmail && _ownerEmail.length > 254) {
+      errors.push({ row: i + 2, message: 'owner_email exceeds 254 character limit' })
       continue
     }
 
