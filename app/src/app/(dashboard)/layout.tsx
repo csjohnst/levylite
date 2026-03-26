@@ -34,10 +34,12 @@ export default async function DashboardLayout({
     .eq('status', 'active')
     .order('scheme_name')
 
-  const organisation = orgUser?.organisations as
+  const orgData = orgUser?.organisations as
     | { id: string; name: string }
+    | { id: string; name: string }[]
     | null
     | undefined
+  const organisation = Array.isArray(orgData) ? orgData[0] : orgData
 
   return (
     <SidebarProvider>
