@@ -58,11 +58,11 @@ async function verifySchemeAccess(supabase: Awaited<ReturnType<typeof createClie
   if (error || !scheme) return false
 
   const { data: userOrg } = await supabase
-    .from('user_organisations')
+    .from('organisation_users')
     .select('organisation_id, role')
     .eq('user_id', userId)
     .eq('organisation_id', scheme.organisation_id)
-    .in('role', ['owner', 'admin'])
+    .in('role', ['manager', 'admin'])
     .single()
 
   return !!userOrg

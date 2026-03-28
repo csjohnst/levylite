@@ -109,7 +109,7 @@ CREATE POLICY insurance_policies_select ON public.insurance_policies
       SELECT 1 FROM public.schemes
       WHERE schemes.id = insurance_policies.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations WHERE user_id = auth.uid()
+        SELECT organisation_id FROM public.organisation_users WHERE user_id = auth.uid()
       )
     )
   );
@@ -121,9 +121,9 @@ CREATE POLICY insurance_policies_insert ON public.insurance_policies
       SELECT 1 FROM public.schemes
       WHERE schemes.id = insurance_policies.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations 
+        SELECT organisation_id FROM public.organisation_users 
         WHERE user_id = auth.uid()
-        AND role IN ('owner', 'admin')
+        AND role IN ('manager', 'admin')
       )
     )
   );
@@ -135,9 +135,9 @@ CREATE POLICY insurance_policies_update ON public.insurance_policies
       SELECT 1 FROM public.schemes
       WHERE schemes.id = insurance_policies.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations 
+        SELECT organisation_id FROM public.organisation_users 
         WHERE user_id = auth.uid()
-        AND role IN ('owner', 'admin')
+        AND role IN ('manager', 'admin')
       )
     )
   )
@@ -146,9 +146,9 @@ CREATE POLICY insurance_policies_update ON public.insurance_policies
       SELECT 1 FROM public.schemes
       WHERE schemes.id = insurance_policies.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations 
+        SELECT organisation_id FROM public.organisation_users 
         WHERE user_id = auth.uid()
-        AND role IN ('owner', 'admin')
+        AND role IN ('manager', 'admin')
       )
     )
   );
@@ -160,9 +160,9 @@ CREATE POLICY insurance_policies_delete ON public.insurance_policies
       SELECT 1 FROM public.schemes
       WHERE schemes.id = insurance_policies.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations 
+        SELECT organisation_id FROM public.organisation_users 
         WHERE user_id = auth.uid()
-        AND role IN ('owner', 'admin')
+        AND role IN ('manager', 'admin')
       )
     )
   );
@@ -175,7 +175,7 @@ CREATE POLICY property_valuations_select ON public.property_valuations
       SELECT 1 FROM public.schemes
       WHERE schemes.id = property_valuations.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations WHERE user_id = auth.uid()
+        SELECT organisation_id FROM public.organisation_users WHERE user_id = auth.uid()
       )
     )
   );
@@ -187,9 +187,9 @@ CREATE POLICY property_valuations_insert ON public.property_valuations
       SELECT 1 FROM public.schemes
       WHERE schemes.id = property_valuations.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations 
+        SELECT organisation_id FROM public.organisation_users 
         WHERE user_id = auth.uid()
-        AND role IN ('owner', 'admin')
+        AND role IN ('manager', 'admin')
       )
     )
   );
@@ -201,9 +201,9 @@ CREATE POLICY property_valuations_update ON public.property_valuations
       SELECT 1 FROM public.schemes
       WHERE schemes.id = property_valuations.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations 
+        SELECT organisation_id FROM public.organisation_users 
         WHERE user_id = auth.uid()
-        AND role IN ('owner', 'admin')
+        AND role IN ('manager', 'admin')
       )
     )
   )
@@ -212,9 +212,9 @@ CREATE POLICY property_valuations_update ON public.property_valuations
       SELECT 1 FROM public.schemes
       WHERE schemes.id = property_valuations.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations 
+        SELECT organisation_id FROM public.organisation_users 
         WHERE user_id = auth.uid()
-        AND role IN ('owner', 'admin')
+        AND role IN ('manager', 'admin')
       )
     )
   );
@@ -226,9 +226,9 @@ CREATE POLICY property_valuations_delete ON public.property_valuations
       SELECT 1 FROM public.schemes
       WHERE schemes.id = property_valuations.scheme_id
       AND schemes.organisation_id IN (
-        SELECT organisation_id FROM public.user_organisations 
+        SELECT organisation_id FROM public.organisation_users 
         WHERE user_id = auth.uid()
-        AND role IN ('owner', 'admin')
+        AND role IN ('manager', 'admin')
       )
     )
   );
@@ -297,7 +297,7 @@ SELECT DISTINCT ON (scheme_id)
   valuer_company,
   created_at,
   -- Flag if valuation is outdated (2+ years old)
-  (CURRENT_DATE - valuation_date) > INTERVAL '2 years' AS is_outdated
+  (CURRENT_DATE - valuation_date) > 730 AS is_outdated
 FROM public.property_valuations
 ORDER BY scheme_id, valuation_date DESC;
 
