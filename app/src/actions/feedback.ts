@@ -93,7 +93,7 @@ export async function submitFeedback(data: FeedbackFormData) {
       createdAt: now,
     }
 
-    resend.emails.send({
+    await resend.emails.send({
       from: fromEmail,
       to: 'chris@levylite.com.au',
       subject: `[LevyLite Feedback] ${category} — ${sentimentLabel}`,
