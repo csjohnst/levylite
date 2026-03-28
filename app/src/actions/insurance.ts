@@ -80,7 +80,7 @@ export async function createInsurancePolicy(input: InsurancePolicyInput) {
   // Validate input
   const validation = insurancePolicySchema.safeParse(input)
   if (!validation.success) {
-    return { error: validation.error.errors[0].message }
+    return { error: validation.error.issues[0].message }
   }
 
   // Verify scheme access
@@ -222,7 +222,7 @@ export async function createPropertyValuation(input: PropertyValuationInput) {
   // Validate input
   const validation = propertyValuationSchema.safeParse(input)
   if (!validation.success) {
-    return { error: validation.error.errors[0].message }
+    return { error: validation.error.issues[0].message }
   }
 
   // Verify scheme access
