@@ -2,6 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { getResendClient } from '@/lib/email/resend'
+import {
+  buildFeedbackNotificationEmailHtml,
+  buildFeedbackNotificationEmailText,
+} from '@/lib/email/feedback-notification-template'
 
 const feedbackSchema = z.object({
   message: z.string().min(10, 'Feedback must be at least 10 characters').max(5000),
@@ -61,6 +66,42 @@ export async function submitFeedback(data: FeedbackFormData) {
   if (error) {
     console.error('Feedback submission error:', error)
     return { error: 'Failed to submit feedback. Please try again.' }
+  }
+
+  // Fire-and-forget: notify Chris of new feedback
+  const resend = getResendClient()
+  if (resend) {
+    const now = new Date().toISOString()
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'LevyLite <noreply@levylite.com.au>'
+    const category = categoryName || 'uncategorised'
+    const sentimentLabel = sentiment || 'no sentiment'
+
+    const emailData = {
+      feedbackId: feedback.id,
+      message,
+      categoryName: categoryName || null,
+      sentiment: sentiment || null,
+      pageUrl,
+      pageTitle: pageTitle || null,
+      contactEmail: contactEmail || null,
+      allowContact: allowContact ?? false,
+      userFingerprint,
+      sessionId: sessionId || null,
+      viewportWidth: viewportWidth || null,
+      viewportHeight: viewportHeight || null,
+      userAgent: null,
+      createdAt: now,
+    }
+
+    resend.emails.send({
+      from: fromEmail,
+      to: 'chris@levylite.com.au',
+      subject: `[LevyLite Feedback] ${category} — ${sentimentLabel}`,
+      html: buildFeedbackNotificationEmailHtml(emailData),
+      text: buildFeedbackNotificationEmailText(emailData),
+    }).catch((err) => {
+      console.error('[feedback] notification email failed:', err)
+    })
   }
 
   return { success: true, feedbackId: feedback.id }
