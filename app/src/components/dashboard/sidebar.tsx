@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/sidebar'
 import { SchemeSwitcher } from '@/components/dashboard/scheme-switcher'
 import { UserNav } from '@/components/dashboard/user-nav'
+import { useCurrentScheme } from '@/hooks/use-current-scheme'
 
 interface SchemeOption {
   id: string
@@ -57,6 +58,7 @@ const navItems = [
     title: 'Schemes',
     href: '/schemes',
     icon: Building2,
+    schemeHref: '/schemes/{id}',
   },
   {
     title: 'Owners',
@@ -67,26 +69,31 @@ const navItems = [
     title: 'Levies',
     href: '/levies',
     icon: Receipt,
+    schemeHref: '/schemes/{id}/levies',
   },
   {
     title: 'Payments',
     href: '/payments',
     icon: DollarSign,
+    schemeHref: '/schemes/{id}/payments',
   },
   {
     title: 'Trust Accounting',
     href: '/trust',
     icon: Landmark,
+    schemeHref: '/schemes/{id}/trust',
   },
   {
     title: 'Meetings',
     href: '/meetings',
     icon: Calendar,
+    schemeHref: '/schemes/{id}/meetings',
   },
   {
     title: 'Maintenance',
     href: '/maintenance',
     icon: Wrench,
+    schemeHref: '/schemes/{id}/maintenance',
   },
   {
     title: 'Tradespeople',
@@ -97,6 +104,7 @@ const navItems = [
     title: 'Documents',
     href: '/documents',
     icon: FileText,
+    schemeHref: '/schemes/{id}/documents',
   },
   {
     title: 'Reports',
@@ -112,6 +120,7 @@ const navItems = [
 
 export function AppSidebar({ user, organisation, schemes }: AppSidebarProps) {
   const pathname = usePathname()
+  const { schemeId } = useCurrentScheme()
 
   return (
     <Sidebar collapsible="icon">
@@ -143,9 +152,19 @@ export function AppSidebar({ user, organisation, schemes }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
+                const resolvedHref =
+                  schemeId && item.schemeHref
+                    ? item.schemeHref.replace('{id}', schemeId)
+                    : item.href
+
                 const isActive = item.exact
                   ? pathname === item.href
-                  : pathname.startsWith(item.href)
+                  : pathname.startsWith(item.href) ||
+                    (schemeId && item.schemeHref
+                      ? pathname.startsWith(
+                          item.schemeHref.replace('{id}', schemeId)
+                        )
+                      : false)
 
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -154,7 +173,7 @@ export function AppSidebar({ user, organisation, schemes }: AppSidebarProps) {
                       isActive={isActive}
                       tooltip={item.title}
                     >
-                      <Link href={item.href}>
+                      <Link href={resolvedHref}>
                         <item.icon className="size-4" />
                         <span>{item.title}</span>
                       </Link>
