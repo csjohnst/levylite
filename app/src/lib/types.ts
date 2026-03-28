@@ -145,3 +145,73 @@ export interface Tenant {
   createdAt: string
   updatedAt: string
 }
+
+// =============================================
+// Insurance Tracking Types
+// =============================================
+
+export type InsurancePolicyType = 'building' | 'public_liability' | 'office_bearers' | 'fidelity' | 'workers_comp' | 'other'
+export type InsurancePolicyStatus = 'active' | 'expired' | 'cancelled' | 'pending_renewal'
+export type ValuationType = 'insurance' | 'market' | 'depreciated_replacement'
+export type InsuranceAlertStatus = 'expired' | 'expiring_soon' | 'renewal_due' | 'ok'
+
+export interface InsurancePolicy {
+  id: string
+  scheme_id: string
+  policy_type: InsurancePolicyType
+  policy_number: string
+  insurer_name: string
+  broker_name: string | null
+  premium_amount: number
+  sum_insured: number | null
+  excess_amount: number | null
+  effective_date: string
+  expiry_date: string
+  renewal_notice_sent_at: string | null
+  coverage_notes: string | null
+  special_conditions: string | null
+  status: InsurancePolicyStatus
+  created_at: string
+  created_by: string | null
+  updated_at: string
+  updated_by: string | null
+}
+
+export interface PropertyValuation {
+  id: string
+  scheme_id: string
+  valuation_date: string
+  valuation_amount: number
+  valuation_type: ValuationType
+  valuer_name: string
+  valuer_company: string | null
+  valuer_registration_number: string | null
+  report_reference: string | null
+  report_file_path: string | null
+  notes: string | null
+  methodology: string | null
+  created_at: string
+  created_by: string | null
+  updated_at: string
+  updated_by: string | null
+}
+
+export interface LatestPropertyValuation {
+  id: string
+  scheme_id: string
+  valuation_date: string
+  valuation_amount: number
+  valuation_type: ValuationType
+  valuer_name: string
+  valuer_company: string | null
+  created_at: string
+  is_outdated: boolean
+}
+
+export interface InsurancePolicyWithAlerts extends InsurancePolicy {
+  latest_valuation_date: string | null
+  latest_valuation_amount: number | null
+  valuation_is_outdated: boolean | null
+  days_until_expiry: number
+  alert_status: InsuranceAlertStatus
+}
