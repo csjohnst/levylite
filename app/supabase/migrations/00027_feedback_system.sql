@@ -4,16 +4,12 @@
 -- Feature: Anonymous user feedback with category classification
 -- =============================================
 
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
 -- =============================================
 -- 1. FEEDBACK CATEGORIES (Strategic Classification)
 -- =============================================
 
 CREATE TABLE IF NOT EXISTS feedback_categories (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL UNIQUE,
   description TEXT,
   color TEXT, -- Hex color for UI display
@@ -40,7 +36,7 @@ ON CONFLICT (name) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS feedback (
   -- Identity
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Privacy-First User Identification
   -- No auth.uid() - uses browser fingerprint + session
@@ -92,7 +88,7 @@ CREATE INDEX IF NOT EXISTS idx_feedback_page_url ON feedback(page_url) WHERE del
 -- =============================================
 
 CREATE TABLE IF NOT EXISTS feedback_attachments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   feedback_id UUID NOT NULL REFERENCES feedback(id) ON DELETE CASCADE,
 
   -- File Storage
