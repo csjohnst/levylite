@@ -121,7 +121,7 @@ export function OpeningBalanceForm({ schemeId }: { schemeId: string }) {
         router.refresh()
         loadLots()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to apply opening balances')
     } finally {
       setSaving(false)
@@ -144,7 +144,7 @@ export function OpeningBalanceForm({ schemeId }: { schemeId: string }) {
         router.refresh()
         loadLots()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to clear opening balances')
     } finally {
       setClearing(false)

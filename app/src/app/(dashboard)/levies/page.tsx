@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Receipt, ArrowRight } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
@@ -10,10 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-
-function formatCurrency(amount: number): string {
-  return '$' + amount.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
 
 export default async function LeviesIndexPage() {
   const supabase = await createClient()
@@ -39,7 +34,7 @@ export default async function LeviesIndexPage() {
 
   // For each scheme, get count of active schedules
   const schemeIds = schemes?.map(s => s.id) ?? []
-  let scheduleCounts: Record<string, number> = {}
+  const scheduleCounts: Record<string, number> = {}
   if (schemeIds.length > 0) {
     const { data: schedules } = await supabase
       .from('levy_schedules')

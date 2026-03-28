@@ -4,9 +4,6 @@ import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card'
 
 interface Resolution {
@@ -55,7 +52,7 @@ export function ResolutionList({ resolutions }: ResolutionListProps) {
 
   return (
     <div className="space-y-3">
-      {resolutions.map((res, index) => {
+      {resolutions.map((res) => {
         const totalVotes = res.votes_for + res.votes_against
         const percentage = totalVotes > 0
           ? ((res.votes_for / totalVotes) * 100).toFixed(1)

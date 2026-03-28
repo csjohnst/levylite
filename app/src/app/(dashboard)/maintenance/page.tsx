@@ -18,17 +18,6 @@ const PRIORITY_COLORS: Record<string, string> = {
   cosmetic: 'bg-gray-100 text-gray-800',
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  new: 'bg-gray-100 text-gray-800',
-  acknowledged: 'bg-blue-100 text-blue-800',
-  assigned: 'bg-indigo-100 text-indigo-800',
-  quoted: 'bg-yellow-100 text-yellow-800',
-  approved: 'bg-green-100 text-green-800',
-  in_progress: 'bg-orange-100 text-orange-800',
-  completed: 'bg-emerald-100 text-emerald-800',
-  closed: 'bg-slate-100 text-slate-800',
-}
-
 export default async function MaintenanceIndexPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

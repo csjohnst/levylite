@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Upload, FileText, Download } from 'lucide-react'
+import { Upload, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -42,10 +42,6 @@ interface PreviewLine {
   debit: string
   credit: string
   balance: string
-}
-
-function formatCurrency(amount: number): string {
-  return '$' + amount.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 export function BankStatementUpload({ schemeId, onSuccess }: BankStatementUploadProps) {

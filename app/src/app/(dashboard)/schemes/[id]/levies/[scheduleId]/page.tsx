@@ -85,7 +85,7 @@ export default async function ScheduleDetailPage({
 
   // For each period, get a count of levy_items
   const periodIds = periods.map(p => p.id)
-  let itemCounts: Record<string, number> = {}
+  const itemCounts: Record<string, number> = {}
   if (periodIds.length > 0) {
     const { data: items } = await supabase
       .from('levy_items')

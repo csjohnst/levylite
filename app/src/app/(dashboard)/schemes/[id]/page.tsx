@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { Pencil, Plus, Upload, Building2, Home, Users, UserCheck, Receipt, DollarSign, ArrowRight, Landmark, BookOpen, Scale, FileCheck, FileText, Wallet, Wrench, Calendar } from 'lucide-react'
+import { Pencil, Plus, Upload, Building2, Home, Users, Receipt, DollarSign, ArrowRight, Landmark, BookOpen, Scale, FileCheck, FileText, Wallet, Wrench, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -12,14 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Separator } from '@/components/ui/separator'
 import { LotsTab } from '@/components/schemes/lots-tab'
 import { OwnersTab } from '@/components/schemes/owners-tab'
@@ -51,7 +43,7 @@ export default async function SchemeDetailPage({
   if (error || !scheme) notFound()
 
   // Fetch lots with owners
-  const { data: lots, error: lotsError } = await supabase
+  const { data: lots } = await supabase
     .from('lots')
     .select('*, lot_ownerships(*, owners(id, first_name, last_name, email, phone_mobile, portal_user_id, portal_invite_sent_at, portal_invite_accepted_at, portal_activated_at))')
     .eq('scheme_id', id)

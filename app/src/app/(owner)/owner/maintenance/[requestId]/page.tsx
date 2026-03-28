@@ -1,10 +1,9 @@
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { ArrowLeft, MapPin, Clock } from 'lucide-react'
 import Link from 'next/link'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'

@@ -129,7 +129,10 @@ export async function updateScheme(id: string, data: SchemeFormData) {
   }
 
   // Strip trust fields from the update to be safe (in case the trigger also catches it)
-  const { trust_bsb: _bsb, trust_account_number: _acn, trust_account_name: _aname, ...safeData } = parsed.data
+  const TRUST_FIELDS = ['trust_bsb', 'trust_account_number', 'trust_account_name'] as const
+  const safeData = Object.fromEntries(
+    Object.entries(parsed.data).filter(([k]) => !(TRUST_FIELDS as readonly string[]).includes(k))
+  ) as Omit<typeof parsed.data, typeof TRUST_FIELDS[number]>
 
   const { data: scheme, error } = await supabase
     .from('schemes')

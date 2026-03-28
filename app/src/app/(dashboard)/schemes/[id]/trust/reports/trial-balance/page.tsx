@@ -21,7 +21,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { getTrialBalance } from '@/actions/reports'
-import type { TrialBalanceRow } from '@/actions/reports'
 import { ExportPDFButton } from '@/components/reports/export-pdf-button'
 
 function formatCurrency(amount: number): string {

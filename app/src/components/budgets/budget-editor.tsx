@@ -68,7 +68,6 @@ function formatCurrency(amount: number): string {
 }
 
 export function BudgetEditor({
-  schemeId,
   budgetId,
   status,
   totalAmount,

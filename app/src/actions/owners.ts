@@ -390,7 +390,7 @@ export async function updateLotOwnership(
 ) {
   const result = await getAuth()
   if ('error' in result && !('supabase' in result)) return { error: result.error }
-  const { supabase, user } = result as Exclude<typeof result, { error: string }>
+  const { supabase } = result as Exclude<typeof result, { error: string }>
 
   const { data: ownership, error } = await supabase
     .from('lot_ownerships')

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { MoreHorizontal, Download, Pencil, Trash2, Upload } from 'lucide-react'
+import { MoreHorizontal, Download, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,

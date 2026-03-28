@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { BudgetEditor } from '@/components/budgets/budget-editor'
 
 const FUND_LABELS: Record<string, string> = {

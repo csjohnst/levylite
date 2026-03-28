@@ -36,7 +36,6 @@ const STATUS_TRANSITIONS: Record<string, { label: string; nextStatus: string; va
 export function RequestStatusActions({
   requestId,
   currentStatus,
-  hasAssignedTradesperson,
 }: RequestStatusActionsProps) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)

@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { createOwner } from '@/actions/owners'
-import type { OwnerFormData, LotAssignment } from '@/actions/owners'
+import type { LotAssignment } from '@/actions/owners'
 
 const ownerSchema = z.object({
   title: z.string().optional().nullable(),

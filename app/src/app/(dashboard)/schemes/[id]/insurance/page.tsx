@@ -20,7 +20,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { InsurancePolicyWithAlerts, PropertyValuation } from '@/lib/types'
 
 export default async function InsurancePage({
   params,
@@ -63,7 +62,6 @@ export default async function InsurancePage({
   // Count alerts
   const expiredCount = policies?.filter(p => p.alert_status === 'expired').length ?? 0
   const expiringSoonCount = policies?.filter(p => p.alert_status === 'expiring_soon').length ?? 0
-  const renewalDueCount = policies?.filter(p => p.alert_status === 'renewal_due').length ?? 0
 
   const formatCurrency = (amount: number | null) => {
     if (amount === null) return 'N/A'

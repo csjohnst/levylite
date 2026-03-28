@@ -41,14 +41,6 @@ const FUND_LABELS: Record<string, string> = {
   capital_works: 'Capital Works',
 }
 
-const METHOD_LABELS: Record<string, string> = {
-  eft: 'EFT',
-  credit_card: 'Credit Card',
-  cheque: 'Cheque',
-  cash: 'Cash',
-  bpay: 'BPAY',
-}
-
 export default async function TransactionListPage({
   params,
   searchParams,

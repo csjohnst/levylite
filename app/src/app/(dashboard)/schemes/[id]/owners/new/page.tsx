@@ -1,8 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { OwnerForm } from '@/components/owners/owner-form'
-import { createOwner } from '@/actions/owners'
-import type { OwnerFormData, LotAssignment } from '@/actions/owners'
 import { OwnerLotAssignment } from '@/components/owners/owner-lot-assignment'
 
 export default async function NewOwnerPage({

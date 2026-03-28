@@ -1,6 +1,5 @@
 'use client'
 
-import { Fragment } from 'react'
 import { CheckCircle, AlertTriangle, Clock } from 'lucide-react'
 import {
   Card,

@@ -287,8 +287,8 @@ export async function getIncomeStatement(
     const totalExpenses = Math.round(expenses.reduce((sum, c) => sum + c.total, 0) * 100) / 100
 
     return {
-      income: income.map(({ type: _t, txn_fund: _f, ...rest }) => rest),
-      expenses: expenses.map(({ type: _t, txn_fund: _f, ...rest }) => rest),
+      income: income.map(({ category_id, code, name, fund_type, total }) => ({ category_id, code, name, fund_type, total })),
+      expenses: expenses.map(({ category_id, code, name, fund_type, total }) => ({ category_id, code, name, fund_type, total })),
       total_income: totalIncome,
       total_expenses: totalExpenses,
       net: Math.round((totalIncome - totalExpenses) * 100) / 100,

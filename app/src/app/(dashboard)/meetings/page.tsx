@@ -1,14 +1,11 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { CalendarDays, ArrowRight } from 'lucide-react'
+import { CalendarDays } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card'
 import {
   Table,

@@ -11,7 +11,7 @@ interface CalculateLeviesButtonProps {
   periodId: string
 }
 
-export function CalculateLeviesButton({ schemeId, periodId }: CalculateLeviesButtonProps) {
+export function CalculateLeviesButton({ periodId }: CalculateLeviesButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 

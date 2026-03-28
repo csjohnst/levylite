@@ -116,7 +116,7 @@ export async function createBudget(schemeId: string, data: CreateBudgetFormData)
     .eq('id', parsed.data.financial_year_id)
     .single()
 
-  let previousActuals = new Map<string, number>()
+  const previousActuals = new Map<string, number>()
   if (currentFY) {
     // Find the previous financial year by looking for one ending before this one starts
     const { data: prevFY } = await supabase
