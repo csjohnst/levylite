@@ -7,6 +7,7 @@ export interface OwnerInviteEmailData {
   lotNumber: string
   managerName: string
   activationUrl: string
+  organisationName?: string
 }
 
 export function buildOwnerInviteEmailHtml(data: OwnerInviteEmailData): string {
@@ -38,7 +39,11 @@ export function buildOwnerInviteEmailHtml(data: OwnerInviteEmailData): string {
     <div class="content">
       <p>Dear ${escapeHtml(data.ownerName)},</p>
 
-      <p>You have been invited to access the owner portal for <strong>${escapeHtml(data.schemeName)}</strong> (Lot ${escapeHtml(data.lotNumber)}).</p>
+      <p>You have been invited to access the owner portal for <strong>${escapeHtml(data.schemeName)}</strong> (Lot ${escapeHtml(data.lotNumber)})${data.organisationName ? `, managed by <strong>${escapeHtml(data.organisationName)}</strong>` : ''}.</p>
+
+      <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 13px;">
+        <strong style="color: #856404;">Security Notice:</strong> If you did not expect this invitation${data.organisationName ? ` from ${escapeHtml(data.organisationName)}` : ''}, do NOT click the link below. Always verify the sender and check with your strata manager before activating your account.
+      </div>
 
       <p>The owner portal gives you online access to:</p>
       <ul>
@@ -52,7 +57,7 @@ export function buildOwnerInviteEmailHtml(data: OwnerInviteEmailData): string {
         <a href="${escapeHtml(data.activationUrl)}" class="cta">Activate My Account</a>
       </div>
 
-      <p>This invitation was sent by ${escapeHtml(data.managerName)}. If you did not expect this email, you can safely ignore it.</p>
+      <p>This invitation was sent by ${escapeHtml(data.managerName)}${data.organisationName ? ` at ${escapeHtml(data.organisationName)}` : ''}.</p>
 
       <p>Thank you,<br>LevyLite</p>
     </div>
@@ -66,10 +71,12 @@ export function buildOwnerInviteEmailHtml(data: OwnerInviteEmailData): string {
 
 export function buildOwnerInviteEmailText(data: OwnerInviteEmailData): string {
   return `LevyLite - Owner Portal Invitation
-
+${data.organisationName ? `From: ${data.organisationName}\n` : ''}
 Dear ${data.ownerName},
 
-You have been invited to access the owner portal for ${data.schemeName} (Lot ${data.lotNumber}).
+You have been invited to access the owner portal for ${data.schemeName} (Lot ${data.lotNumber})${data.organisationName ? `, managed by ${data.organisationName}` : ''}.
+
+SECURITY NOTICE: If you did not expect this invitation${data.organisationName ? ` from ${data.organisationName}` : ''}, do NOT click the link below. Always verify the sender and check with your strata manager before activating your account.
 
 The owner portal gives you online access to:
 - View your levy statements and payment history
@@ -80,7 +87,7 @@ The owner portal gives you online access to:
 Activate your account here:
 ${data.activationUrl}
 
-This invitation was sent by ${data.managerName}. If you did not expect this email, you can safely ignore it.
+This invitation was sent by ${data.managerName}${data.organisationName ? ` at ${data.organisationName}` : ''}.
 
 Thank you,
 LevyLite`

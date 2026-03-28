@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sanitizePostgrestSearch } from '@/lib/sanitize-search'
 
 async function getAuth() {
   const supabase = await createClient()
@@ -37,8 +38,9 @@ export async function listTradespeople(filters?: {
   }
 
   if (filters?.search) {
+    const safe = sanitizePostgrestSearch(filters.search)
     query = query.or(
-      `business_name.ilike.%${filters.search}%,contact_name.ilike.%${filters.search}%`
+      `business_name.ilike.%${safe}%,contact_name.ilike.%${safe}%`
     )
   }
 

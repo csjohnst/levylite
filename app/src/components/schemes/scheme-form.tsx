@@ -49,6 +49,8 @@ interface SchemeFormProps {
   initialData?: Partial<SchemeFormData>
   onSubmit: (data: SchemeFormData) => Promise<{ data?: unknown; error?: string }>
   submitLabel?: string
+  /** Scheme ID — when set, bank detail fields are read-only (edit mode) */
+  schemeId?: string
 }
 
 const STATES = ['WA', 'NSW', 'VIC', 'QLD', 'SA', 'TAS', 'NT', 'ACT'] as const
@@ -68,7 +70,9 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-export function SchemeForm({ initialData, onSubmit, submitLabel = 'Save Scheme' }: SchemeFormProps) {
+export function SchemeForm({ initialData, onSubmit, submitLabel = 'Save Scheme', schemeId }: SchemeFormProps) {
+  const isEditMode = !!schemeId
+  const hasBankDetails = !!(initialData?.trust_bsb || initialData?.trust_account_number || initialData?.trust_account_name)
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -362,44 +366,75 @@ export function SchemeForm({ initialData, onSubmit, submitLabel = 'Save Scheme' 
             <p className="text-sm text-muted-foreground">
               Bank account details shown on levy notices for owner payments
             </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="trust_bsb">BSB</Label>
-                <Input
-                  id="trust_bsb"
-                  name="trust_bsb"
-                  placeholder="066-123"
-                  defaultValue={initialData?.trust_bsb ?? ''}
-                />
-                {errors.trust_bsb && (
-                  <p className="text-sm text-destructive">{errors.trust_bsb}</p>
-                )}
+            {isEditMode && hasBankDetails ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-2">
+                <p className="text-sm font-medium text-amber-800">
+                  Bank details are protected and cannot be edited directly. For security, changes require a separate request and approval from a different manager.
+                </p>
+                <div className="grid gap-2 sm:grid-cols-3 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">BSB:</span>{' '}
+                    <span className="font-mono">{initialData?.trust_bsb || '(not set)'}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Account:</span>{' '}
+                    <span className="font-mono">{initialData?.trust_account_number || '(not set)'}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Name:</span>{' '}
+                    {initialData?.trust_account_name || '(not set)'}
+                  </div>
+                </div>
+                <p className="text-xs text-amber-700">
+                  To change bank details, go to the Trust tab on the scheme detail page and use &quot;Request Bank Detail Change&quot;.
+                </p>
+                {/* Hidden fields to preserve values during form submission */}
+                <input type="hidden" name="trust_bsb" value={initialData?.trust_bsb ?? ''} />
+                <input type="hidden" name="trust_account_number" value={initialData?.trust_account_number ?? ''} />
+                <input type="hidden" name="trust_account_name" value={initialData?.trust_account_name ?? ''} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="trust_account_number">Account Number</Label>
-                <Input
-                  id="trust_account_number"
-                  name="trust_account_number"
-                  placeholder="12345678"
-                  defaultValue={initialData?.trust_account_number ?? ''}
-                />
-                {errors.trust_account_number && (
-                  <p className="text-sm text-destructive">{errors.trust_account_number}</p>
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="trust_account_name">Account Name</Label>
-              <Input
-                id="trust_account_name"
-                name="trust_account_name"
-                placeholder="ABC Strata Co Trust Account"
-                defaultValue={initialData?.trust_account_name ?? ''}
-              />
-              {errors.trust_account_name && (
-                <p className="text-sm text-destructive">{errors.trust_account_name}</p>
-              )}
-            </div>
+            ) : (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="trust_bsb">BSB</Label>
+                    <Input
+                      id="trust_bsb"
+                      name="trust_bsb"
+                      placeholder="066-123"
+                      defaultValue={initialData?.trust_bsb ?? ''}
+                    />
+                    {errors.trust_bsb && (
+                      <p className="text-sm text-destructive">{errors.trust_bsb}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="trust_account_number">Account Number</Label>
+                    <Input
+                      id="trust_account_number"
+                      name="trust_account_number"
+                      placeholder="12345678"
+                      defaultValue={initialData?.trust_account_number ?? ''}
+                    />
+                    {errors.trust_account_number && (
+                      <p className="text-sm text-destructive">{errors.trust_account_number}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="trust_account_name">Account Name</Label>
+                  <Input
+                    id="trust_account_name"
+                    name="trust_account_name"
+                    placeholder="ABC Strata Co Trust Account"
+                    defaultValue={initialData?.trust_account_name ?? ''}
+                  />
+                  {errors.trust_account_name && (
+                    <p className="text-sm text-destructive">{errors.trust_account_name}</p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

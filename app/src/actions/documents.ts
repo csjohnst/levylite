@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { validateMimeType } from '@/lib/mime-validation'
+import { getSafeErrorMessage } from '@/lib/safe-error'
 
 // --- Auth helper ---
 
@@ -81,6 +83,13 @@ export async function uploadDocument(schemeId: string, formData: FormData) {
     return { error: parsed.error.issues[0].message }
   }
 
+  // Server-side MIME validation using magic bytes
+  const fileBuffer = Buffer.from(await file.arrayBuffer())
+  const mimeCheck = validateMimeType(new Uint8Array(fileBuffer), file.type || 'application/octet-stream')
+  if (!mimeCheck.valid) {
+    return { error: mimeCheck.error ?? 'File type validation failed' }
+  }
+
   // Build storage path: {scheme_id}/{category}/{year}/{sanitized-filename}
   const year = parsed.data.document_date.substring(0, 4)
   const sanitizedName = file.name
@@ -90,7 +99,6 @@ export async function uploadDocument(schemeId: string, formData: FormData) {
   const storagePath = `${schemeId}/${parsed.data.category}/${year}/${timestamp}_${sanitizedName}`
 
   // Upload to Supabase Storage
-  const fileBuffer = Buffer.from(await file.arrayBuffer())
   const { error: uploadError } = await supabase.storage
     .from('scheme-documents')
     .upload(storagePath, fileBuffer, {
@@ -98,7 +106,7 @@ export async function uploadDocument(schemeId: string, formData: FormData) {
       upsert: false,
     })
 
-  if (uploadError) return { error: `File upload failed: ${uploadError.message}` }
+  if (uploadError) return { error: getSafeErrorMessage(uploadError) }
 
   // Create document record
   const { data: document, error: insertError } = await supabase
@@ -123,7 +131,7 @@ export async function uploadDocument(schemeId: string, formData: FormData) {
   if (insertError) {
     // Try to clean up the uploaded file
     await supabase.storage.from('scheme-documents').remove([storagePath])
-    return { error: `Failed to create document record: ${insertError.message}` }
+    return { error: getSafeErrorMessage(insertError) }
   }
 
   // Create initial version record

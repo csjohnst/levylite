@@ -1,9 +1,8 @@
 'use client'
 
 import { Suspense, useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { PASSWORD_MIN_LENGTH, PASSWORD_HINT } from '@/lib/password-validation'
 
 type ActivationState = 'loading' | 'ready' | 'activating' | 'success' | 'error'
 
@@ -36,15 +36,12 @@ export default function OwnerActivatePage() {
 
 function OwnerActivateContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const token = searchParams.get('token')
   const [state, setState] = useState<ActivationState>('loading')
   const [error, setError] = useState<string | null>(null)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState<string | null>(null)
-
-  const supabase = createClient()
 
   useEffect(() => {
     if (!token) {
@@ -53,24 +50,15 @@ function OwnerActivateContent() {
       return
     }
 
-    try {
-      const base64 = token.replace(/-/g, '+').replace(/_/g, '/')
-      const decoded = JSON.parse(atob(base64))
-      if (!decoded.ownerId || !decoded.portalUserId) {
-        throw new Error('Invalid token')
-      }
-      if (decoded.ts && Date.now() - decoded.ts > 7 * 24 * 60 * 60 * 1000) {
-        setError(
-          'This activation link has expired. Please contact your strata manager to request a new one.'
-        )
-        setState('error')
-        return
-      }
-      setState('ready')
-    } catch {
+    // Token is now HMAC-signed — client cannot decode it for validation.
+    // Just check it has the expected format (payload.signature).
+    if (!token.includes('.')) {
       setError('Invalid activation link. Please contact your strata manager.')
       setState('error')
+      return
     }
+
+    setState('ready')
   }, [token])
 
   async function handleActivate(e: React.FormEvent) {
@@ -79,8 +67,24 @@ function OwnerActivateContent() {
 
     setPasswordError(null)
 
-    if (password.length < 8) {
-      setPasswordError('Password must be at least 8 characters.')
+    // F17: Client-side password strength check
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      setPasswordError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`)
+      return
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setPasswordError('Password must contain at least one uppercase letter.')
+      return
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setPasswordError('Password must contain at least one lowercase letter.')
+      return
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setPasswordError('Password must contain at least one digit.')
       return
     }
 
@@ -104,20 +108,9 @@ function OwnerActivateContent() {
         throw new Error(result.error || 'Activation failed')
       }
 
-      // Sign in immediately with the password they just set
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: result.email,
-        password,
-      })
-
-      if (signInError) {
-        // Activation succeeded but auto-login failed — send them to login page
-        setState('success')
-        return
-      }
-
-      // Redirect to owner portal
-      router.push('/owner')
+      // Activation succeeded — redirect to login page (auto-login removed
+      // because the API no longer returns the email for security reasons)
+      setState('success')
     } catch (err) {
       setError(
         err instanceof Error
@@ -201,11 +194,11 @@ function OwnerActivateContent() {
             <Input
               id="password"
               type="password"
-              placeholder="At least 8 characters"
+              placeholder={PASSWORD_HINT}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={8}
+              minLength={PASSWORD_MIN_LENGTH}
               autoFocus
             />
           </div>
@@ -218,7 +211,7 @@ function OwnerActivateContent() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              minLength={8}
+              minLength={PASSWORD_MIN_LENGTH}
             />
           </div>
           <Button

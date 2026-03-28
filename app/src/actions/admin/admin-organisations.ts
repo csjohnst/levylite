@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { getAdminContext } from './helpers'
+import { sanitizePostgrestSearch } from '@/lib/sanitize-search'
 
 // ============================================================
 // Types
@@ -75,7 +76,8 @@ export async function getOrganisations(search?: string) {
     .order('created_at', { ascending: false })
 
   if (search) {
-    query = query.ilike('name', `%${search}%`)
+    const safe = sanitizePostgrestSearch(search)
+    query = query.ilike('name', `%${safe}%`)
   }
 
   const { data: orgs, error } = await query

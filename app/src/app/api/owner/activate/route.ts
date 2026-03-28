@@ -1,42 +1,61 @@
+// TODO: F13 — Add production-grade rate limiting (e.g., @upstash/ratelimit for serverless).
+// In-memory rate limiter applied below is suitable for single-instance deployments only.
+
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { verifyActivationToken } from '@/lib/activation-token'
+import { validatePassword } from '@/lib/password-validation'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { validateRequestOrigin } from '@/lib/validate-origin'
+
+// Rate limit: 5 activation attempts per IP per 15 minutes
+const RATE_LIMIT_CONFIG = { maxRequests: 5, windowMs: 15 * 60 * 1000 }
 
 export async function POST(request: Request) {
   try {
+    // F27: CSRF origin validation
+    const originCheck = validateRequestOrigin(request)
+    if (!originCheck.valid) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // Apply rate limiting by IP
+    const forwarded = request.headers.get('x-forwarded-for')
+    const ip = forwarded?.split(',')[0]?.trim() ?? 'unknown'
+    const rateLimitResult = checkRateLimit(`activate:${ip}`, RATE_LIMIT_CONFIG)
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil(rateLimitResult.retryAfterMs / 1000)) },
+        }
+      )
+    }
+
     const { token, password } = await request.json()
 
     if (!token) {
       return NextResponse.json({ error: 'Missing token' }, { status: 400 })
     }
 
-    if (!password || password.length < 8) {
+    // F17: Validate password strength
+    const passwordCheck = validatePassword(password ?? '')
+    if (!passwordCheck.valid) {
       return NextResponse.json(
-        { error: 'Password must be at least 8 characters' },
+        { error: passwordCheck.message },
         { status: 400 }
       )
     }
 
+    // F3: Verify HMAC-signed token (includes expiry check at 48h)
     let decoded: { ownerId: string; portalUserId: string; ts: number }
     try {
-      decoded = JSON.parse(Buffer.from(token, 'base64url').toString('utf-8'))
-    } catch {
+      decoded = verifyActivationToken(token)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Invalid activation token'
       return NextResponse.json(
-        { error: 'Invalid activation token' },
-        { status: 400 }
-      )
-    }
-
-    if (!decoded.ownerId || !decoded.portalUserId) {
-      return NextResponse.json(
-        { error: 'Invalid activation token' },
-        { status: 400 }
-      )
-    }
-
-    // Check expiry (7 days)
-    if (decoded.ts && Date.now() - decoded.ts > 7 * 24 * 60 * 60 * 1000) {
-      return NextResponse.json(
-        { error: 'Activation link has expired. Please contact your strata manager.' },
+        { error: message },
         { status: 400 }
       )
     }
@@ -46,14 +65,14 @@ export async function POST(request: Request) {
     // Fetch the owner record
     const { data: owner, error: ownerError } = await adminSupabase
       .from('owners')
-      .select('id, email, first_name, last_name, portal_user_id, portal_invite_accepted_at')
+      .select('id, portal_user_id, portal_invite_accepted_at')
       .eq('id', decoded.ownerId)
       .single()
 
     if (ownerError || !owner) {
       return NextResponse.json(
-        { error: 'Owner record not found' },
-        { status: 404 }
+        { error: 'Invalid activation token' },
+        { status: 400 }
       )
     }
 
@@ -64,12 +83,12 @@ export async function POST(request: Request) {
       )
     }
 
-    // Already activated
+    // F3: Reject if already activated (single-use token)
     if (owner.portal_invite_accepted_at) {
-      return NextResponse.json({
-        email: owner.email,
-        alreadyActivated: true,
-      })
+      return NextResponse.json(
+        { error: 'This account has already been activated. Please log in instead.' },
+        { status: 400 }
+      )
     }
 
     // Set the password on the auth user via admin API
@@ -80,12 +99,12 @@ export async function POST(request: Request) {
 
     if (updateUserError) {
       return NextResponse.json(
-        { error: `Failed to set password: ${updateUserError.message}` },
+        { error: 'Failed to activate account. Please try again or contact your strata manager.' },
         { status: 500 }
       )
     }
 
-    // Mark as activated
+    // Mark as activated (this also makes the token single-use)
     const { error: updateError } = await adminSupabase
       .from('owners')
       .update({
@@ -101,9 +120,9 @@ export async function POST(request: Request) {
       )
     }
 
+    // F3: Do NOT return the email address in the response
     return NextResponse.json({
-      email: owner.email,
-      alreadyActivated: false,
+      activated: true,
     })
   } catch (err) {
     console.error('[api/owner/activate] Error:', err)

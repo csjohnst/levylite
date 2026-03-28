@@ -37,6 +37,9 @@ export default async function EditSchemePage({
     financial_year_end_day: scheme.financial_year_end_day,
     levy_frequency: scheme.levy_frequency,
     levy_due_day: scheme.levy_due_day,
+    trust_bsb: scheme.trust_bsb,
+    trust_account_number: scheme.trust_account_number,
+    trust_account_name: scheme.trust_account_name,
     notes: scheme.notes,
   }
 
@@ -57,6 +60,7 @@ export default async function EditSchemePage({
         initialData={initialData}
         onSubmit={handleUpdate}
         submitLabel="Update Scheme"
+        schemeId={id}
       />
     </div>
   )

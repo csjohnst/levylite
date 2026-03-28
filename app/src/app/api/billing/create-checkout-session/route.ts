@@ -2,9 +2,14 @@ import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { validateRequestOrigin } from '@/lib/validate-origin'
 
 export async function POST(request: Request) {
   try {
+    const originCheck = validateRequestOrigin(request)
+    if (!originCheck.valid) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -110,7 +115,10 @@ export async function POST(request: Request) {
     // Create checkout session
     // Prices in Stripe must be created with tax_behavior='exclusive' so GST is added on top.
     // automatic_tax requires Stripe Tax to be enabled in the Stripe dashboard.
-    const origin = request.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? ''
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL
+    if (!appUrl) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
     const session = await getStripe().checkout.sessions.create({
       customer: stripeCustomerId,
       customer_update: { address: 'auto' },
@@ -127,8 +135,8 @@ export async function POST(request: Request) {
       subscription_data: {
         metadata: { organisation_id: orgId },
       },
-      success_url: `${origin}/settings/billing?success=true`,
-      cancel_url: `${origin}/settings/billing`,
+      success_url: `${appUrl}/settings/billing?success=true`,
+      cancel_url: `${appUrl}/settings/billing`,
     })
 
     return NextResponse.json({ sessionUrl: session.url })

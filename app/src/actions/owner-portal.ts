@@ -7,6 +7,7 @@ import {
   buildOwnerInviteEmailHtml,
   buildOwnerInviteEmailText,
 } from '@/lib/email/owner-invite-template'
+import { createActivationToken } from '@/lib/activation-token'
 import { revalidatePath } from 'next/cache'
 
 async function getAuth() {
@@ -75,35 +76,52 @@ export async function inviteOwnerToPortal(ownerId: string) {
     return { error: 'You do not have permission to invite owners for this scheme' }
   }
 
+  // Fetch organisation name for the email (F28: anti-phishing)
+  const { data: org } = await supabase
+    .from('organisations')
+    .select('name')
+    .eq('id', scheme.organisation_id)
+    .single()
+  const organisationName = org?.name ?? undefined
+
   // Create auth user for the owner using admin client
   const adminSupabase = createAdminClient()
 
-  // Check if an auth user already exists with this email
-  const { data: existingUsers } = await adminSupabase.auth.admin.listUsers()
-  const existingUser = existingUsers?.users?.find(
-    (u) => u.email?.toLowerCase() === owner.email.toLowerCase()
-  )
-
+  // F10: Try to create the user first. If they already exist, Supabase returns
+  // a 422 error, and we do a small scoped lookup instead of listing all users.
   let portalUserId: string
 
-  if (existingUser) {
-    portalUserId = existingUser.id
-  } else {
-    // Create a new auth user (no password, magic link only)
-    const { data: newUser, error: createError } =
-      await adminSupabase.auth.admin.createUser({
-        email: owner.email,
-        email_confirm: true,
-        user_metadata: {
-          first_name: owner.first_name,
-          last_name: owner.last_name,
-          role: 'owner',
-        },
-      })
+  const { data: newUser, error: createError } =
+    await adminSupabase.auth.admin.createUser({
+      email: owner.email,
+      email_confirm: true,
+      user_metadata: {
+        first_name: owner.first_name,
+        last_name: owner.last_name,
+        role: 'owner',
+      },
+    })
 
-    if (createError || !newUser.user) {
-      return { error: `Failed to create portal account: ${createError?.message ?? 'Unknown error'}` }
+  if (createError) {
+    if (createError.message?.includes('already been registered') || createError.status === 422) {
+      // User already exists — query auth.users directly via service role (scoped by email)
+      const { data: existingAuthUser } = await adminSupabase
+        .schema('auth')
+        .from('users')
+        .select('id')
+        .eq('email', owner.email.toLowerCase())
+        .limit(1)
+        .maybeSingle()
+      if (!existingAuthUser) {
+        return { error: 'Failed to locate existing user account' }
+      }
+      portalUserId = existingAuthUser.id
+    } else {
+      return { error: `Failed to create portal account: ${createError.message}` }
     }
+  } else if (!newUser.user) {
+    return { error: 'Failed to create portal account: Unknown error' }
+  } else {
     portalUserId = newUser.user.id
   }
 
@@ -128,10 +146,8 @@ export async function inviteOwnerToPortal(ownerId: string) {
       ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`
       : user.email || 'Your Strata Manager')
 
-  // Build activation URL with a token
-  const activationToken = Buffer.from(
-    JSON.stringify({ ownerId, portalUserId, ts: Date.now() })
-  ).toString('base64url')
+  // Build activation URL with HMAC-signed token (F3)
+  const activationToken = createActivationToken(ownerId, portalUserId)
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   const activationUrl = `${baseUrl}/owner/activate?token=${activationToken}`
@@ -154,6 +170,7 @@ export async function inviteOwnerToPortal(ownerId: string) {
           lotNumber: lotLabel,
           managerName: managerName.trim(),
           activationUrl,
+          organisationName,
         }),
         text: buildOwnerInviteEmailText({
           ownerName: `${owner.first_name} ${owner.last_name}`,
@@ -161,6 +178,7 @@ export async function inviteOwnerToPortal(ownerId: string) {
           lotNumber: lotLabel,
           managerName: managerName.trim(),
           activationUrl,
+          organisationName,
         }),
       })
     } catch (emailError) {
@@ -219,6 +237,24 @@ export async function resendPortalInvitation(ownerId: string) {
     return { error: 'Owner is not assigned to any lot in a scheme' }
   }
 
+  // F34: Rate limit — reject if the last invite was sent less than 1 hour ago
+  if (owner.portal_invite_sent_at) {
+    const lastSent = new Date(owner.portal_invite_sent_at)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+    if (lastSent > oneHourAgo) {
+      const minutesRemaining = Math.ceil((lastSent.getTime() + 60 * 60 * 1000 - Date.now()) / 60000)
+      return { error: `Please wait before resending the invitation. You can resend in approximately ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}.` }
+    }
+  }
+
+  // Fetch organisation name for the email (F28: anti-phishing)
+  const { data: resendOrg } = await supabase
+    .from('organisations')
+    .select('name')
+    .eq('id', scheme.organisation_id)
+    .single()
+  const resendOrgName = resendOrg?.name ?? undefined
+
   // Update invite timestamp
   const { error: updateError } = await supabase
     .from('owners')
@@ -238,9 +274,8 @@ export async function resendPortalInvitation(ownerId: string) {
       ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`
       : user.email || 'Your Strata Manager')
 
-  const activationToken = Buffer.from(
-    JSON.stringify({ ownerId, portalUserId: owner.portal_user_id, ts: Date.now() })
-  ).toString('base64url')
+  // F3: HMAC-signed activation token
+  const activationToken = createActivationToken(ownerId, owner.portal_user_id)
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   const activationUrl = `${baseUrl}/owner/activate?token=${activationToken}`
@@ -262,6 +297,7 @@ export async function resendPortalInvitation(ownerId: string) {
           lotNumber: lotLabel,
           managerName: managerName.trim(),
           activationUrl,
+          organisationName: resendOrgName,
         }),
         text: buildOwnerInviteEmailText({
           ownerName: `${owner.first_name} ${owner.last_name}`,
@@ -269,6 +305,7 @@ export async function resendPortalInvitation(ownerId: string) {
           lotNumber: lotLabel,
           managerName: managerName.trim(),
           activationUrl,
+          organisationName: resendOrgName,
         }),
       })
     } catch (emailError) {
