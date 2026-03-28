@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { MessageSquarePlus, Bug, Lightbulb, Palette, FileText, Zap, MessageCircle, Send, X, ThumbsUp, ThumbsDown, Minus } from 'lucide-react'
+import { MessageSquarePlus, Bug, Lightbulb, Palette, FileText, Zap, MessageCircle, Send, ThumbsUp, ThumbsDown, Minus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'

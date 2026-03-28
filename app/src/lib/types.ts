@@ -147,6 +147,13 @@ export interface Tenant {
 }
 
 // =============================================
+// Feedback System Types
+// =============================================
+
+export type FeedbackStatus = 'new' | 'reviewed' | 'in_progress' | 'resolved' | 'archived'
+export type FeedbackSentiment = 'positive' | 'neutral' | 'negative'
+
+// =============================================
 // Insurance Tracking Types
 // =============================================
 

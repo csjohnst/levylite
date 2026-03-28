@@ -22,7 +22,7 @@ export type FeedbackFormData = z.infer<typeof feedbackSchema>
 export async function submitFeedback(data: FeedbackFormData) {
   const parsed = feedbackSchema.safeParse(data)
   if (!parsed.success) {
-    return { error: parsed.error.message }
+    return { error: parsed.error.issues[0].message }
   }
 
   const supabase = await createClient()
