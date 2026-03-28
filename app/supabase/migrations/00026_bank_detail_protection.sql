@@ -9,7 +9,7 @@ BEGIN;
 -- 1. Bank detail change requests table
 -- =============================================================================
 
-CREATE TABLE public.bank_detail_change_requests (
+CREATE TABLE IF NOT EXISTS public.bank_detail_change_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   scheme_id UUID NOT NULL REFERENCES public.schemes(id) ON DELETE CASCADE,
   requested_by UUID NOT NULL REFERENCES auth.users(id),
@@ -31,15 +31,17 @@ CREATE TABLE public.bank_detail_change_requests (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_bank_detail_changes_scheme ON public.bank_detail_change_requests(scheme_id);
-CREATE INDEX idx_bank_detail_changes_status ON public.bank_detail_change_requests(status);
+CREATE INDEX IF NOT EXISTS idx_bank_detail_changes_scheme ON public.bank_detail_change_requests(scheme_id);
+CREATE INDEX IF NOT EXISTS idx_bank_detail_changes_status ON public.bank_detail_change_requests(status);
 
 -- Updated_at trigger
+DROP TRIGGER IF EXISTS update_bank_detail_change_requests_updated_at ON public.bank_detail_change_requests;
 CREATE TRIGGER update_bank_detail_change_requests_updated_at
   BEFORE UPDATE ON public.bank_detail_change_requests
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Audit logging
+DROP TRIGGER IF EXISTS audit_bank_detail_change_requests ON public.bank_detail_change_requests;
 CREATE TRIGGER audit_bank_detail_change_requests
   AFTER INSERT OR UPDATE OR DELETE ON public.bank_detail_change_requests
   FOR EACH ROW EXECUTE FUNCTION public.audit_log_trigger();
@@ -51,6 +53,7 @@ CREATE TRIGGER audit_bank_detail_change_requests
 ALTER TABLE public.bank_detail_change_requests ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: org-scoped — users can see change requests for schemes in their org
+DROP POLICY IF EXISTS "bank_detail_changes_select" ON public.bank_detail_change_requests;
 CREATE POLICY "bank_detail_changes_select" ON public.bank_detail_change_requests
   FOR SELECT USING (
     EXISTS (
@@ -61,6 +64,7 @@ CREATE POLICY "bank_detail_changes_select" ON public.bank_detail_change_requests
   );
 
 -- INSERT: manager/admin only — can create change requests for schemes in their org
+DROP POLICY IF EXISTS "bank_detail_changes_insert" ON public.bank_detail_change_requests;
 CREATE POLICY "bank_detail_changes_insert" ON public.bank_detail_change_requests
   FOR INSERT WITH CHECK (
     public.user_role() IN ('manager', 'admin')
@@ -74,6 +78,7 @@ CREATE POLICY "bank_detail_changes_insert" ON public.bank_detail_change_requests
 
 -- UPDATE: manager/admin only, different user than requester, org-scoped
 -- (used for approve/reject — actual approval goes through the SECURITY DEFINER function)
+DROP POLICY IF EXISTS "bank_detail_changes_update" ON public.bank_detail_change_requests;
 CREATE POLICY "bank_detail_changes_update" ON public.bank_detail_change_requests
   FOR UPDATE USING (
     public.user_role() IN ('manager', 'admin')
@@ -123,6 +128,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS prevent_direct_bank_detail_update ON public.schemes;
 CREATE TRIGGER prevent_direct_bank_detail_update
   BEFORE UPDATE ON public.schemes
   FOR EACH ROW

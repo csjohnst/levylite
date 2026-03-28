@@ -198,24 +198,28 @@ $$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
 -- -------------------------------------------------------
 DROP POLICY IF EXISTS "tenant_isolation" ON public.organisations;
 
+DROP POLICY IF EXISTS "organisations_select" ON public.organisations;
 CREATE POLICY "organisations_select" ON public.organisations
   FOR SELECT USING (
     id = public.user_organisation_id()
     OR public.is_platform_admin()
   );
 
+DROP POLICY IF EXISTS "organisations_insert" ON public.organisations;
 CREATE POLICY "organisations_insert" ON public.organisations
   FOR INSERT WITH CHECK (
     -- Only handle_new_user trigger (SECURITY DEFINER) or platform admins create orgs
     public.is_platform_admin()
   );
 
+DROP POLICY IF EXISTS "organisations_update" ON public.organisations;
 CREATE POLICY "organisations_update" ON public.organisations
   FOR UPDATE USING (
     id = public.user_organisation_id()
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "organisations_delete" ON public.organisations;
 CREATE POLICY "organisations_delete" ON public.organisations
   FOR DELETE USING (
     id = public.user_organisation_id()
@@ -228,23 +232,27 @@ CREATE POLICY "organisations_delete" ON public.organisations
 -- -------------------------------------------------------
 DROP POLICY IF EXISTS "tenant_isolation" ON public.organisation_users;
 
+DROP POLICY IF EXISTS "org_users_select" ON public.organisation_users;
 CREATE POLICY "org_users_select" ON public.organisation_users
   FOR SELECT USING (
     organisation_id = public.user_organisation_id()
   );
 
+DROP POLICY IF EXISTS "org_users_insert" ON public.organisation_users;
 CREATE POLICY "org_users_insert" ON public.organisation_users
   FOR INSERT WITH CHECK (
     organisation_id = public.user_organisation_id()
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "org_users_update" ON public.organisation_users;
 CREATE POLICY "org_users_update" ON public.organisation_users
   FOR UPDATE USING (
     organisation_id = public.user_organisation_id()
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "org_users_delete" ON public.organisation_users;
 CREATE POLICY "org_users_delete" ON public.organisation_users
   FOR DELETE USING (
     organisation_id = public.user_organisation_id()
@@ -257,24 +265,28 @@ CREATE POLICY "org_users_delete" ON public.organisation_users
 -- -------------------------------------------------------
 DROP POLICY IF EXISTS "tenant_isolation" ON public.schemes;
 
+DROP POLICY IF EXISTS "schemes_select" ON public.schemes;
 CREATE POLICY "schemes_select" ON public.schemes
   FOR SELECT USING (
     organisation_id = public.user_organisation_id()
   );
 
 -- F1: INSERT WITH CHECK validates org ownership
+DROP POLICY IF EXISTS "schemes_insert" ON public.schemes;
 CREATE POLICY "schemes_insert" ON public.schemes
   FOR INSERT WITH CHECK (
     organisation_id = public.user_organisation_id()
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "schemes_update" ON public.schemes;
 CREATE POLICY "schemes_update" ON public.schemes
   FOR UPDATE USING (
     organisation_id = public.user_organisation_id()
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "schemes_delete" ON public.schemes;
 CREATE POLICY "schemes_delete" ON public.schemes
   FOR DELETE USING (
     organisation_id = public.user_organisation_id()
@@ -287,6 +299,7 @@ CREATE POLICY "schemes_delete" ON public.schemes
 -- -------------------------------------------------------
 DROP POLICY IF EXISTS "tenant_isolation" ON public.lots;
 
+DROP POLICY IF EXISTS "lots_select" ON public.lots;
 CREATE POLICY "lots_select" ON public.lots
   FOR SELECT USING (
     EXISTS (
@@ -297,6 +310,7 @@ CREATE POLICY "lots_select" ON public.lots
   );
 
 -- F1: INSERT validates scheme belongs to user's org
+DROP POLICY IF EXISTS "lots_insert" ON public.lots;
 CREATE POLICY "lots_insert" ON public.lots
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -307,6 +321,7 @@ CREATE POLICY "lots_insert" ON public.lots
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "lots_update" ON public.lots;
 CREATE POLICY "lots_update" ON public.lots
   FOR UPDATE USING (
     EXISTS (
@@ -317,6 +332,7 @@ CREATE POLICY "lots_update" ON public.lots
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "lots_delete" ON public.lots;
 CREATE POLICY "lots_delete" ON public.lots
   FOR DELETE USING (
     EXISTS (
@@ -333,6 +349,7 @@ CREATE POLICY "lots_delete" ON public.lots
 -- -------------------------------------------------------
 DROP POLICY IF EXISTS "tenant_isolation" ON public.lot_ownerships;
 
+DROP POLICY IF EXISTS "lot_ownerships_select" ON public.lot_ownerships;
 CREATE POLICY "lot_ownerships_select" ON public.lot_ownerships
   FOR SELECT USING (
     EXISTS (
@@ -344,6 +361,7 @@ CREATE POLICY "lot_ownerships_select" ON public.lot_ownerships
   );
 
 -- F1: INSERT validates lot->scheme->org chain
+DROP POLICY IF EXISTS "lot_ownerships_insert" ON public.lot_ownerships;
 CREATE POLICY "lot_ownerships_insert" ON public.lot_ownerships
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -355,6 +373,7 @@ CREATE POLICY "lot_ownerships_insert" ON public.lot_ownerships
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "lot_ownerships_update" ON public.lot_ownerships;
 CREATE POLICY "lot_ownerships_update" ON public.lot_ownerships
   FOR UPDATE USING (
     EXISTS (
@@ -366,6 +385,7 @@ CREATE POLICY "lot_ownerships_update" ON public.lot_ownerships
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "lot_ownerships_delete" ON public.lot_ownerships;
 CREATE POLICY "lot_ownerships_delete" ON public.lot_ownerships
   FOR DELETE USING (
     EXISTS (
@@ -383,6 +403,7 @@ CREATE POLICY "lot_ownerships_delete" ON public.lot_ownerships
 -- -------------------------------------------------------
 DROP POLICY IF EXISTS "tenant_isolation" ON public.committee_members;
 
+DROP POLICY IF EXISTS "committee_members_select" ON public.committee_members;
 CREATE POLICY "committee_members_select" ON public.committee_members
   FOR SELECT USING (
     EXISTS (
@@ -393,6 +414,7 @@ CREATE POLICY "committee_members_select" ON public.committee_members
   );
 
 -- F1: INSERT validates scheme->org
+DROP POLICY IF EXISTS "committee_members_insert" ON public.committee_members;
 CREATE POLICY "committee_members_insert" ON public.committee_members
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -403,6 +425,7 @@ CREATE POLICY "committee_members_insert" ON public.committee_members
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "committee_members_update" ON public.committee_members;
 CREATE POLICY "committee_members_update" ON public.committee_members
   FOR UPDATE USING (
     EXISTS (
@@ -413,6 +436,7 @@ CREATE POLICY "committee_members_update" ON public.committee_members
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "committee_members_delete" ON public.committee_members;
 CREATE POLICY "committee_members_delete" ON public.committee_members
   FOR DELETE USING (
     EXISTS (
@@ -428,6 +452,7 @@ CREATE POLICY "committee_members_delete" ON public.committee_members
 -- -------------------------------------------------------
 DROP POLICY IF EXISTS "tenant_isolation" ON public.tenants;
 
+DROP POLICY IF EXISTS "tenants_select" ON public.tenants;
 CREATE POLICY "tenants_select" ON public.tenants
   FOR SELECT USING (
     EXISTS (
@@ -439,6 +464,7 @@ CREATE POLICY "tenants_select" ON public.tenants
   );
 
 -- F1: INSERT validates lot->scheme->org chain
+DROP POLICY IF EXISTS "tenants_insert" ON public.tenants;
 CREATE POLICY "tenants_insert" ON public.tenants
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -450,6 +476,7 @@ CREATE POLICY "tenants_insert" ON public.tenants
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "tenants_update" ON public.tenants;
 CREATE POLICY "tenants_update" ON public.tenants
   FOR UPDATE USING (
     EXISTS (
@@ -461,6 +488,7 @@ CREATE POLICY "tenants_update" ON public.tenants
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "tenants_delete" ON public.tenants;
 CREATE POLICY "tenants_delete" ON public.tenants
   FOR DELETE USING (
     EXISTS (
@@ -477,23 +505,27 @@ CREATE POLICY "tenants_delete" ON public.tenants
 -- -------------------------------------------------------
 DROP POLICY IF EXISTS "tenant_isolation" ON public.invitations;
 
+DROP POLICY IF EXISTS "invitations_select" ON public.invitations;
 CREATE POLICY "invitations_select" ON public.invitations
   FOR SELECT USING (
     organisation_id = public.user_organisation_id()
   );
 
+DROP POLICY IF EXISTS "invitations_insert" ON public.invitations;
 CREATE POLICY "invitations_insert" ON public.invitations
   FOR INSERT WITH CHECK (
     organisation_id = public.user_organisation_id()
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "invitations_update" ON public.invitations;
 CREATE POLICY "invitations_update" ON public.invitations
   FOR UPDATE USING (
     organisation_id = public.user_organisation_id()
     AND public.user_role() IN ('manager', 'admin')
   );
 
+DROP POLICY IF EXISTS "invitations_delete" ON public.invitations;
 CREATE POLICY "invitations_delete" ON public.invitations
   FOR DELETE USING (
     organisation_id = public.user_organisation_id()
@@ -506,15 +538,19 @@ CREATE POLICY "invitations_delete" ON public.invitations
 -- -------------------------------------------------------
 DROP POLICY IF EXISTS "users_see_own_notifications" ON public.notifications;
 
+DROP POLICY IF EXISTS "notifications_select" ON public.notifications;
 CREATE POLICY "notifications_select" ON public.notifications
   FOR SELECT USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "notifications_insert" ON public.notifications;
 CREATE POLICY "notifications_insert" ON public.notifications
   FOR INSERT WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "notifications_update" ON public.notifications;
 CREATE POLICY "notifications_update" ON public.notifications
   FOR UPDATE USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "notifications_delete" ON public.notifications;
 CREATE POLICY "notifications_delete" ON public.notifications
   FOR DELETE USING (user_id = auth.uid());
 
@@ -1020,6 +1056,7 @@ DROP POLICY IF EXISTS "coa_update" ON public.chart_of_accounts;
 DROP POLICY IF EXISTS "coa_delete" ON public.chart_of_accounts;
 
 -- SELECT: scheme-specific rows for org members + global rows for everyone authenticated
+DROP POLICY IF EXISTS "coa_select" ON public.chart_of_accounts;
 CREATE POLICY "coa_select" ON public.chart_of_accounts
   FOR SELECT USING (
     scheme_id IS NULL
@@ -1032,6 +1069,7 @@ CREATE POLICY "coa_select" ON public.chart_of_accounts
 
 -- INSERT: scheme-specific rows require scheme->org validation
 -- Global rows (scheme_id IS NULL) require platform admin
+DROP POLICY IF EXISTS "coa_insert" ON public.chart_of_accounts;
 CREATE POLICY "coa_insert" ON public.chart_of_accounts
   FOR INSERT WITH CHECK (
     CASE
@@ -1045,6 +1083,7 @@ CREATE POLICY "coa_insert" ON public.chart_of_accounts
   );
 
 -- UPDATE: global rows = platform admin only; scheme rows = org member
+DROP POLICY IF EXISTS "coa_update" ON public.chart_of_accounts;
 CREATE POLICY "coa_update" ON public.chart_of_accounts
   FOR UPDATE USING (
     CASE
@@ -1058,6 +1097,7 @@ CREATE POLICY "coa_update" ON public.chart_of_accounts
   );
 
 -- DELETE: global rows = platform admin only; scheme rows = org member
+DROP POLICY IF EXISTS "coa_delete" ON public.chart_of_accounts;
 CREATE POLICY "coa_delete" ON public.chart_of_accounts
   FOR DELETE USING (
     CASE
@@ -1083,6 +1123,7 @@ DROP POLICY IF EXISTS "scheme_docs_insert" ON storage.objects;
 DROP POLICY IF EXISTS "scheme_docs_update" ON storage.objects;
 DROP POLICY IF EXISTS "scheme_docs_delete" ON storage.objects;
 
+DROP POLICY IF EXISTS "scheme_docs_select" ON storage.objects;
 CREATE POLICY "scheme_docs_select" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'scheme-documents'
@@ -1094,6 +1135,7 @@ CREATE POLICY "scheme_docs_select" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "scheme_docs_insert" ON storage.objects;
 CREATE POLICY "scheme_docs_insert" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'scheme-documents'
@@ -1105,6 +1147,7 @@ CREATE POLICY "scheme_docs_insert" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "scheme_docs_update" ON storage.objects;
 CREATE POLICY "scheme_docs_update" ON storage.objects
   FOR UPDATE USING (
     bucket_id = 'scheme-documents'
@@ -1116,6 +1159,7 @@ CREATE POLICY "scheme_docs_update" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "scheme_docs_delete" ON storage.objects;
 CREATE POLICY "scheme_docs_delete" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'scheme-documents'
@@ -1133,6 +1177,7 @@ DROP POLICY IF EXISTS "maintenance_attachments_insert" ON storage.objects;
 DROP POLICY IF EXISTS "maintenance_attachments_update" ON storage.objects;
 DROP POLICY IF EXISTS "maintenance_attachments_delete" ON storage.objects;
 
+DROP POLICY IF EXISTS "maintenance_attachments_select" ON storage.objects;
 CREATE POLICY "maintenance_attachments_select" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'maintenance-attachments'
@@ -1144,6 +1189,7 @@ CREATE POLICY "maintenance_attachments_select" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "maintenance_attachments_insert" ON storage.objects;
 CREATE POLICY "maintenance_attachments_insert" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'maintenance-attachments'
@@ -1155,6 +1201,7 @@ CREATE POLICY "maintenance_attachments_insert" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "maintenance_attachments_update" ON storage.objects;
 CREATE POLICY "maintenance_attachments_update" ON storage.objects
   FOR UPDATE USING (
     bucket_id = 'maintenance-attachments'
@@ -1166,6 +1213,7 @@ CREATE POLICY "maintenance_attachments_update" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "maintenance_attachments_delete" ON storage.objects;
 CREATE POLICY "maintenance_attachments_delete" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'maintenance-attachments'
@@ -1178,6 +1226,7 @@ CREATE POLICY "maintenance_attachments_delete" ON storage.objects
   );
 
 -- Owner portal users also need storage access for their schemes
+DROP POLICY IF EXISTS "owner_scheme_docs_select" ON storage.objects;
 CREATE POLICY "owner_scheme_docs_select" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'scheme-documents'
@@ -1185,6 +1234,7 @@ CREATE POLICY "owner_scheme_docs_select" ON storage.objects
     AND (storage.foldername(name))[1]::uuid IN (SELECT public.owner_scheme_ids())
   );
 
+DROP POLICY IF EXISTS "owner_maintenance_attachments_select" ON storage.objects;
 CREATE POLICY "owner_maintenance_attachments_select" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'maintenance-attachments'
@@ -1192,6 +1242,7 @@ CREATE POLICY "owner_maintenance_attachments_select" ON storage.objects
     AND (storage.foldername(name))[1]::uuid IN (SELECT public.owner_scheme_ids())
   );
 
+DROP POLICY IF EXISTS "owner_maintenance_attachments_insert" ON storage.objects;
 CREATE POLICY "owner_maintenance_attachments_insert" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'maintenance-attachments'
