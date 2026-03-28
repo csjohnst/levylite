@@ -40,7 +40,7 @@ export function AddValuationForm({ schemeId }: AddValuationFormProps) {
     const result = await createPropertyValuation({
       schemeId,
       valuationDate,
-      valuationAmount: parseFloat(valuationAmount),
+      valuationAmount: Number(valuationAmount) || 0,
       valuationType: valuationType as 'insurance' | 'market' | 'depreciated_replacement',
       valuerName,
       valuerCompany: valuerCompany || null,
@@ -55,7 +55,6 @@ export function AddValuationForm({ schemeId }: AddValuationFormProps) {
     } else {
       toast.success('Property valuation created')
       router.push(`/schemes/${schemeId}/insurance`)
-      router.refresh()
     }
     setLoading(false)
   }

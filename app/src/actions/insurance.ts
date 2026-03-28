@@ -148,15 +148,15 @@ export async function updateInsurancePolicy(policyId: string, updates: Partial<I
 
   // Build update object
   const updateData: Record<string, unknown> = { updated_by: user.id }
-  if (updates.policyType) updateData.policy_type = updates.policyType
-  if (updates.policyNumber) updateData.policy_number = updates.policyNumber
-  if (updates.insurerName) updateData.insurer_name = updates.insurerName
+  if (updates.policyType !== undefined) updateData.policy_type = updates.policyType
+  if (updates.policyNumber !== undefined) updateData.policy_number = updates.policyNumber
+  if (updates.insurerName !== undefined) updateData.insurer_name = updates.insurerName
   if (updates.brokerName !== undefined) updateData.broker_name = updates.brokerName
   if (updates.premiumAmount !== undefined) updateData.premium_amount = updates.premiumAmount
   if (updates.sumInsured !== undefined) updateData.sum_insured = updates.sumInsured
   if (updates.excessAmount !== undefined) updateData.excess_amount = updates.excessAmount
-  if (updates.effectiveDate) updateData.effective_date = updates.effectiveDate
-  if (updates.expiryDate) updateData.expiry_date = updates.expiryDate
+  if (updates.effectiveDate !== undefined) updateData.effective_date = updates.effectiveDate
+  if (updates.expiryDate !== undefined) updateData.expiry_date = updates.expiryDate
   if (updates.coverageNotes !== undefined) updateData.coverage_notes = updates.coverageNotes
   if (updates.specialConditions !== undefined) updateData.special_conditions = updates.specialConditions
 
@@ -282,10 +282,10 @@ export async function updatePropertyValuation(valuationId: string, updates: Part
 
   // Build update object
   const updateData: Record<string, unknown> = { updated_by: user.id }
-  if (updates.valuationDate) updateData.valuation_date = updates.valuationDate
+  if (updates.valuationDate !== undefined) updateData.valuation_date = updates.valuationDate
   if (updates.valuationAmount !== undefined) updateData.valuation_amount = updates.valuationAmount
-  if (updates.valuationType) updateData.valuation_type = updates.valuationType
-  if (updates.valuerName) updateData.valuer_name = updates.valuerName
+  if (updates.valuationType !== undefined) updateData.valuation_type = updates.valuationType
+  if (updates.valuerName !== undefined) updateData.valuer_name = updates.valuerName
   if (updates.valuerCompany !== undefined) updateData.valuer_company = updates.valuerCompany
   if (updates.valuerRegistrationNumber !== undefined) updateData.valuer_registration_number = updates.valuerRegistrationNumber
   if (updates.reportReference !== undefined) updateData.report_reference = updates.reportReference

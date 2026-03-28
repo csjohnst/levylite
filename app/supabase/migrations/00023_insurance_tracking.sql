@@ -330,7 +330,18 @@ LEFT JOIN public.latest_property_valuations lv ON lv.scheme_id = ip.scheme_id;
 GRANT SELECT ON public.insurance_policies_with_alerts TO authenticated;
 
 -- ============================================================
--- 9. COMMENTS
+-- 9. SCHEDULE AUTO-EXPIRE (pg_cron)
+-- ============================================================
+
+-- Run daily at midnight to expire policies past their expiry date
+SELECT cron.schedule(
+  'auto-expire-insurance-policies',
+  '0 0 * * *',
+  $$SELECT public.auto_expire_insurance_policies()$$
+);
+
+-- ============================================================
+-- 10. COMMENTS
 -- ============================================================
 
 COMMENT ON TABLE public.insurance_policies IS 'Insurance policies for strata schemes including building, liability, and other coverage';

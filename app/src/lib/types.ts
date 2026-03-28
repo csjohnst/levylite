@@ -147,85 +147,6 @@ export interface Tenant {
 }
 
 // =============================================
-// Feedback System Types
-// =============================================
-
-export interface FeedbackCategory {
-  id: string
-  name: string
-  description: string | null
-  color: string | null
-  icon: string | null
-  sortOrder: number
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export type FeedbackStatus = 'new' | 'reviewed' | 'in_progress' | 'resolved' | 'archived'
-export type FeedbackSentiment = 'positive' | 'neutral' | 'negative'
-
-export interface Feedback {
-  id: string
-  userFingerprint: string
-  sessionId: string | null
-  categoryId: string | null
-  message: string
-  sentiment: FeedbackSentiment | null
-  pageUrl: string
-  pageTitle: string | null
-  userAgent: string | null
-  viewportWidth: number | null
-  viewportHeight: number | null
-  contactEmail: string | null
-  allowContact: boolean
-  status: FeedbackStatus
-  adminNotes: string | null
-  assignedTo: string | null
-  resolvedAt: string | null
-  createdAt: string
-  updatedAt: string
-  deletedAt: string | null
-  category?: FeedbackCategory
-  attachments?: FeedbackAttachment[]
-}
-
-export interface FeedbackAttachment {
-  id: string
-  feedbackId: string
-  storagePath: string
-  fileName: string
-  fileSize: number
-  mimeType: 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif'
-  width: number | null
-  height: number | null
-  createdAt: string
-  deletedAt: string | null
-}
-
-export interface SubmitFeedbackRequest {
-  message: string
-  pageUrl: string
-  userFingerprint: string
-  categoryId?: string
-  sentiment?: FeedbackSentiment
-  pageTitle?: string
-  sessionId?: string
-  contactEmail?: string
-  allowContact?: boolean
-  userAgent?: string
-  viewportWidth?: number
-  viewportHeight?: number
-  screenshot?: string
-}
-
-export interface SubmitFeedbackResponse {
-  success: boolean
-  feedbackId: string
-  message: string
-}
-
-// =============================================
 // Insurance Tracking Types
 // =============================================
 
@@ -236,61 +157,61 @@ export type InsuranceAlertStatus = 'expired' | 'expiring_soon' | 'renewal_due' |
 
 export interface InsurancePolicy {
   id: string
-  schemeId: string
-  policyType: InsurancePolicyType
-  policyNumber: string
-  insurerName: string
-  brokerName: string | null
-  premiumAmount: number
-  sumInsured: number | null
-  excessAmount: number | null
-  effectiveDate: string
-  expiryDate: string
-  renewalNoticeSentAt: string | null
-  coverageNotes: string | null
-  specialConditions: string | null
+  scheme_id: string
+  policy_type: InsurancePolicyType
+  policy_number: string
+  insurer_name: string
+  broker_name: string | null
+  premium_amount: number
+  sum_insured: number | null
+  excess_amount: number | null
+  effective_date: string
+  expiry_date: string
+  renewal_notice_sent_at: string | null
+  coverage_notes: string | null
+  special_conditions: string | null
   status: InsurancePolicyStatus
-  createdAt: string
-  createdBy: string | null
-  updatedAt: string
-  updatedBy: string | null
+  created_at: string
+  created_by: string | null
+  updated_at: string
+  updated_by: string | null
 }
 
 export interface PropertyValuation {
   id: string
-  schemeId: string
-  valuationDate: string
-  valuationAmount: number
-  valuationType: ValuationType
-  valuerName: string
-  valuerCompany: string | null
-  valuerRegistrationNumber: string | null
-  reportReference: string | null
-  reportFilePath: string | null
+  scheme_id: string
+  valuation_date: string
+  valuation_amount: number
+  valuation_type: ValuationType
+  valuer_name: string
+  valuer_company: string | null
+  valuer_registration_number: string | null
+  report_reference: string | null
+  report_file_path: string | null
   notes: string | null
   methodology: string | null
-  createdAt: string
-  createdBy: string | null
-  updatedAt: string
-  updatedBy: string | null
+  created_at: string
+  created_by: string | null
+  updated_at: string
+  updated_by: string | null
 }
 
 export interface LatestPropertyValuation {
   id: string
-  schemeId: string
-  valuationDate: string
-  valuationAmount: number
-  valuationType: ValuationType
-  valuerName: string
-  valuerCompany: string | null
-  createdAt: string
-  isOutdated: boolean
+  scheme_id: string
+  valuation_date: string
+  valuation_amount: number
+  valuation_type: ValuationType
+  valuer_name: string
+  valuer_company: string | null
+  created_at: string
+  is_outdated: boolean
 }
 
 export interface InsurancePolicyWithAlerts extends InsurancePolicy {
-  latestValuationDate: string | null
-  latestValuationAmount: number | null
-  valuationIsOutdated: boolean | null
-  daysUntilExpiry: number
-  alertStatus: InsuranceAlertStatus
+  latest_valuation_date: string | null
+  latest_valuation_amount: number | null
+  valuation_is_outdated: boolean | null
+  days_until_expiry: number
+  alert_status: InsuranceAlertStatus
 }

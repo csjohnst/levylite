@@ -55,6 +55,10 @@ export default async function InsurancePage({
     .order('valuation_date', { ascending: false })
 
   const latestValuation = valuations?.[0]
+  const TWO_YEARS_MS = 2 * 365 * 24 * 60 * 60 * 1000
+  const isValuationOutdated = latestValuation
+    ? (new Date().getTime() - new Date(latestValuation.valuation_date).getTime()) > TWO_YEARS_MS
+    : false
 
   // Count alerts
   const expiredCount = policies?.filter(p => p.alert_status === 'expired').length ?? 0
@@ -187,7 +191,7 @@ export default async function InsurancePage({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Valuation Status</CardTitle>
-            {latestValuation && (new Date().getTime() - new Date(latestValuation.valuation_date).getTime()) > (2 * 365 * 24 * 60 * 60 * 1000) ? (
+            {isValuationOutdated ? (
               <AlertTriangle className="h-4 w-4 text-orange-500" />
             ) : (
               <FileText className="h-4 w-4 text-muted-foreground" />
@@ -196,7 +200,7 @@ export default async function InsurancePage({
           <CardContent>
             <div className="text-2xl font-bold">
               {latestValuation ? (
-                (new Date().getTime() - new Date(latestValuation.valuation_date).getTime()) > (2 * 365 * 24 * 60 * 60 * 1000) ? (
+                isValuationOutdated ? (
                   <Badge variant="outline" className="text-orange-500">Outdated</Badge>
                 ) : (
                   <Badge variant="secondary">Current</Badge>
@@ -204,7 +208,7 @@ export default async function InsurancePage({
               ) : 'N/A'}
             </div>
             <p className="text-xs text-muted-foreground">
-              {latestValuation && (new Date().getTime() - new Date(latestValuation.valuation_date).getTime()) > (2 * 365 * 24 * 60 * 60 * 1000)
+              {isValuationOutdated
                 ? 'Valuation is over 2 years old'
                 : 'Valuation up to date'
               }

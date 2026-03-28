@@ -45,9 +45,9 @@ export function AddPolicyForm({ schemeId }: AddPolicyFormProps) {
       policyNumber,
       insurerName,
       brokerName: brokerName || null,
-      premiumAmount: parseFloat(premiumAmount),
-      sumInsured: sumInsured ? parseFloat(sumInsured) : null,
-      excessAmount: excessAmount ? parseFloat(excessAmount) : null,
+      premiumAmount: Number(premiumAmount) || 0,
+      sumInsured: sumInsured ? Number(sumInsured) || 0 : null,
+      excessAmount: excessAmount ? Number(excessAmount) || 0 : null,
       effectiveDate,
       expiryDate,
       coverageNotes: coverageNotes || null,
@@ -59,7 +59,6 @@ export function AddPolicyForm({ schemeId }: AddPolicyFormProps) {
     } else {
       toast.success('Insurance policy created')
       router.push(`/schemes/${schemeId}/insurance`)
-      router.refresh()
     }
     setLoading(false)
   }
